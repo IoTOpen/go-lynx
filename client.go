@@ -150,9 +150,9 @@ func (c *Client) GetDevices(installationID int64, filter map[string]string) ([]*
 	return res, nil
 }
 
-func (c *Client) GetDevice(installationID, functionID int64) (*Device, error) {
+func (c *Client) GetDevice(installationID, deviceID int64) (*Device, error) {
 	device := &Device{}
-	path := fmt.Sprintf("api/v2/devicex/%d/%d", installationID, functionID)
+	path := fmt.Sprintf("api/v2/devicex/%d/%d", installationID, deviceID)
 	request := c.newRequest(http.MethodGet, path, nil)
 	if err := c.do(request, device); err != nil {
 		return nil, err
