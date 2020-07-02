@@ -25,7 +25,6 @@ type Client struct {
 
 func NewClient(options *Options) *Client {
 	options.ApiBase = strings.TrimSuffix(options.ApiBase, "/")
-	log.Println(options.ApiBase)
 	return &Client{
 		c: &http.Client{
 			Timeout: time.Second * 5,
@@ -180,4 +179,15 @@ func (c *Client) UpdateDevice(dev *Device) (*Device, error) {
 		return nil, err
 	}
 	return device, nil
+}
+
+func (c *Client) Me() (*User, error) {
+	user := &User{}
+	path := "api/v2/user/me"
+	request := c.newRequest(http.MethodGet, path, nil)
+	request.Header.Set("Content-Type", "application/json; utf-8")
+	if err := c.do(request, user); err != nil {
+		return nil, err
+	}
+	return user, nil
 }

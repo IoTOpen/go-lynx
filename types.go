@@ -39,3 +39,20 @@ type Device struct {
 	Created        int64             `json:"created"`
 	Updated        int64             `json:"updated"`
 }
+
+type Address struct {
+	Address string `json:"address"`
+	City    string `json:"city"`
+	Country string `json:"country"`
+	ZIP     string `json:"zip"`
+}
+
+type User struct {
+	ID        int64   `json:"id"`
+	Email     string  `json:"email"`
+	FirstName string  `json:"first_name"`
+	LastName  string  `json:"last_name"`
+	Role      int64   `json:"role"`
+	SmsLogin  bool    `json:"sms_login"`
+	Address   Address `json:"address"`
+}
