@@ -12,7 +12,7 @@ type Authentication interface {
 }
 
 type Basic struct {
-	User string
+	User     string
 	Password string
 }
 

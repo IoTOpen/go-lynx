@@ -6,8 +6,8 @@ import (
 )
 
 type Message struct {
-	Value float64 `json:"value"`
-	Timestamp int64 `json:"timestamp,omitempty"`
+	Value     float64 `json:"value"`
+	Timestamp int64   `json:"timestamp,omitempty"`
 }
 
 func (c *Client) MQTTConnect() error {

@@ -29,7 +29,7 @@ type Client struct {
 func NewClient(options *Options) *Client {
 	options.ApiBase = strings.TrimSuffix(options.ApiBase, "/")
 	var mq mqtt.Client
-	if options.MqttOptions != nil{
+	if options.MqttOptions != nil {
 		options.Authenticator.SetMQTTAuth(options.MqttOptions)
 		mq = mqtt.NewClient(options.MqttOptions)
 	}
@@ -37,7 +37,7 @@ func NewClient(options *Options) *Client {
 		c: &http.Client{
 			Timeout: time.Second * 5,
 		},
-		opt: options,
+		opt:  options,
 		Mqtt: mq,
 	}
 }
