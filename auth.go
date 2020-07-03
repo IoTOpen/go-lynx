@@ -2,11 +2,13 @@ package lynx
 
 import (
 	"fmt"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"net/http"
 )
 
 type Authentication interface {
 	SetHTTPAuth(r *http.Request)
+	SetMQTTAuth(o *mqtt.ClientOptions)
 }
 
 type Basic struct {
@@ -17,6 +19,10 @@ type Basic struct {
 func (b Basic) SetHTTPAuth(r *http.Request) {
 	r.SetBasicAuth(b.User, b.Password)
 }
+func (b Basic) SetMQTTAuth(o *mqtt.ClientOptions) {
+	o.SetUsername(b.User)
+	o.SetPassword(b.Password)
+}
 
 type AuthApiKey struct {
 	Key string
@@ -24,6 +30,11 @@ type AuthApiKey struct {
 
 func (a AuthApiKey) SetHTTPAuth(r *http.Request) {
 	r.Header.Set("X-API-Key", a.Key)
+}
+
+func (a AuthApiKey) SetMQTTAuth(o *mqtt.ClientOptions) {
+	o.SetUsername("apikey")
+	o.SetPassword(a.Key)
 }
 
 type AuthBearer struct {
@@ -34,3 +45,7 @@ func (a AuthBearer) SetHTTPAuth(r *http.Request) {
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.Token))
 }
 
+func (a AuthBearer) SetMQTTAuth(o *mqtt.ClientOptions) {
+	o.SetUsername("bearer")
+	o.SetPassword(a.Token)
+}

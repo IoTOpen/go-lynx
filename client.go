@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"io"
 	"log"
 	"net/http"
@@ -16,20 +17,28 @@ import (
 type Options struct {
 	Authenticator Authentication
 	ApiBase       string
+	MqttOptions   *mqtt.ClientOptions
 }
 
 type Client struct {
-	opt *Options
-	c   *http.Client
+	opt  *Options
+	c    *http.Client
+	Mqtt mqtt.Client
 }
 
 func NewClient(options *Options) *Client {
 	options.ApiBase = strings.TrimSuffix(options.ApiBase, "/")
+	var mq mqtt.Client
+	if options.MqttOptions != nil{
+		options.Authenticator.SetMQTTAuth(options.MqttOptions)
+		mq = mqtt.NewClient(options.MqttOptions)
+	}
 	return &Client{
 		c: &http.Client{
 			Timeout: time.Second * 5,
 		},
 		opt: options,
+		Mqtt: mq,
 	}
 }
 
@@ -179,6 +188,16 @@ func (c *Client) UpdateDevice(dev *Device) (*Device, error) {
 		return nil, err
 	}
 	return device, nil
+}
+
+func (c *Client) Status(installationID int64) (Status, error) {
+	status := Status{}
+	path := fmt.Sprintf("api/v2/status/%d", installationID)
+	request := c.newRequest(http.MethodGet, path, nil)
+	if err := c.do(request, &status); err != nil {
+		return nil, err
+	}
+	return status, nil
 }
 
 func (c *Client) Me() (*User, error) {
