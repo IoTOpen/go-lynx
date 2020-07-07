@@ -42,6 +42,10 @@ func (m Meta) AsFloat64(key string) (float64, error) {
 	return strconv.ParseFloat(m[key], 64)
 }
 
+func (m Meta) AsBool(key string) (bool, error) {
+	return strconv.ParseBool(m[key])
+}
+
 type Device struct {
 	ID             int64  `json:"id"`
 	Type           string `json:"type"`
