@@ -77,7 +77,7 @@ func (c *Client) do(r *http.Request, out interface{}) error {
 		}
 	} else {
 		err := Error{Message: ""}
-		if err := json.NewDecoder(response.Body).Decode(err); err != nil {
+		if err := json.NewDecoder(response.Body).Decode(&err); err != nil {
 			return err
 		}
 		err.Code = response.StatusCode
