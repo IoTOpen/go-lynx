@@ -195,7 +195,7 @@ func (c *Client) GetDevices(installationID int64, filter map[string]string) ([]*
 	}
 	query := strings.Join(parts, "&")
 	request := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/devicex/%d?%s", installationID, query), nil)
-	if err := c.do(request, res); err != nil {
+	if err := c.do(request, &res); err != nil {
 		return nil, err
 	}
 	return res, nil
