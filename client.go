@@ -6,9 +6,7 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"io"
-	"log"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strings"
 	"time"
@@ -71,7 +69,18 @@ func (c *Client) do(r *http.Request, out interface{}) error {
 	if err := requestError(response); err != nil {
 		return err
 	}
-	if err := json.NewDecoder(response.Body).Decode(out); err != nil {
+	if response.StatusCode == http.StatusOK {
+		if out != nil {
+			if err := json.NewDecoder(response.Body).Decode(out); err != nil {
+				return err
+			}
+		}
+	} else {
+		err := Error{Message: ""}
+		if err := json.NewDecoder(response.Body).Decode(err); err != nil {
+			return err
+		}
+		err.Code = response.StatusCode
 		return err
 	}
 	return nil
@@ -86,8 +95,35 @@ func (c *Client) newRequest(method, path string, body io.Reader) *http.Request {
 
 func (c *Client) GetInstallations() ([]*Installation, error) {
 	res := make([]*Installation, 0, 20)
-	request := c.newRequest(http.MethodGet, "api/v2/installationinfo", nil)
+	request := c.newRequest(http.MethodGet, "/api/v2/installationinfo", nil)
 	if err := c.do(request, &res); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (c *Client) GetInstallation(installationID int64) (*Installation, error) {
+	res := make([]*Installation, 0, 20)
+	request := c.newRequest(http.MethodGet, "/api/v2/installationinfo", nil)
+	if err := c.do(request, &res); err != nil {
+		return nil, err
+	}
+	for index, installation := range res {
+		if installation.ID == installationID {
+			return res[index], nil
+		}
+	}
+	return nil, Error{
+		Code:    http.StatusNotFound,
+		Message: http.StatusText(http.StatusNotFound),
+	}
+}
+
+func (c *Client) GetInstallationByClientID(clientID int64) (*Installation, error) {
+	res := &Installation{}
+	path := fmt.Sprintf("api/v2/installationinfo/%d", clientID)
+	req := c.newRequest(http.MethodGet, path, nil)
+	if err := c.do(req, res); err != nil {
 		return nil, err
 	}
 	return res, nil
@@ -111,7 +147,7 @@ func (c *Client) GetFunctions(installationID int64, filter map[string]string) ([
 
 func (c *Client) GetFunction(installationID, functionID int64) (*Function, error) {
 	function := &Function{}
-	path := fmt.Sprintf("/api/v2/functionx/%d/%d", installationID, functionID)
+	path := fmt.Sprintf("api/v2/functionx/%d/%d", installationID, functionID)
 	request := c.newRequest(http.MethodGet, path, nil)
 	if err := c.do(request, function); err != nil {
 		return nil, err
@@ -123,12 +159,19 @@ func (c *Client) CreateFunction(fn *Function) (*Function, error) {
 	function := &Function{}
 	path := fmt.Sprintf("api/v2/functionx/%d", fn.InstallationID)
 	request := c.newRequest(http.MethodPost, path, requestBody(fn))
-	x, _ := httputil.DumpRequestOut(request, true)
-	log.Println(string(x))
 	if err := c.do(request, function); err != nil {
 		return nil, err
 	}
 	return function, nil
+}
+
+func (c *Client) DeleteFunction(fn *Function) error {
+	path := fmt.Sprintf("api/v2/functionx/%d/%d", fn.InstallationID, fn.ID)
+	request := c.newRequest(http.MethodDelete, path, nil)
+	if err := c.do(request, nil); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *Client) UpdateFunction(fn *Function) (*Function, error) {
@@ -177,6 +220,15 @@ func (c *Client) CreateDevice(dev *Device) (*Device, error) {
 		return nil, err
 	}
 	return device, nil
+}
+
+func (c *Client) DeleteDevice(dev *Device) error {
+	path := fmt.Sprintf("api/v2/devicex/%d/%d", dev.InstallationID, dev.ID)
+	request := c.newRequest(http.MethodDelete, path, nil)
+	if err := c.do(request, nil); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *Client) UpdateDevice(dev *Device) (*Device, error) {
