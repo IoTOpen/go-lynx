@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type Error struct {
@@ -82,6 +83,28 @@ type LogEntry struct {
 }
 
 type Status []*LogEntry
+
+type V3Log struct {
+	Total    int64      `json:"total"`
+	LastTime float64    `json:"last"`
+	Count    int        `json:"count"`
+	Data     []LogEntry `json:"data"`
+}
+
+type LogOptionsV3 struct {
+	Limit int64
+	Offset int64
+	From time.Time
+	To time.Time
+	Order LogOrder
+	TopicFilter []string
+}
+
+type LogOrder string
+const (
+	LogOrderDesc = LogOrder("desc")
+	LogOrderAsc  = LogOrder("asc")
+)
 
 func (s Status) Map() map[string]*LogEntry {
 	res := make(map[string]*LogEntry, len(s))

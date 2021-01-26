@@ -24,6 +24,10 @@ type Client struct {
 	Mqtt mqtt.Client
 }
 
+type V3Client struct {
+	c *Client
+}
+
 func NewClient(options *Options) *Client {
 	options.ApiBase = strings.TrimSuffix(options.ApiBase, "/")
 	var mq mqtt.Client
@@ -131,14 +135,11 @@ func (c *Client) GetInstallationByClientID(clientID int64) (*Installation, error
 
 func (c *Client) GetFunctions(installationID int64, filter map[string]string) ([]*Function, error) {
 	res := make([]*Function, 0, 20)
-
-	parts := make([]string, 0, len(filter))
+	query := url.Values{}
 	for k, v := range filter {
-		key, value := url.QueryEscape(k), url.QueryEscape(v)
-		parts = append(parts, fmt.Sprintf("%s=%s", key, value))
+		query[k] = []string{v}
 	}
-	query := strings.Join(parts, "&")
-	request := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/functionx/%d?%s", installationID, query), nil)
+	request := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/functionx/%d?%s", installationID, query.Encode()), nil)
 	if err := c.do(request, &res); err != nil {
 		return nil, err
 	}
@@ -187,14 +188,11 @@ func (c *Client) UpdateFunction(fn *Function) (*Function, error) {
 
 func (c *Client) GetDevices(installationID int64, filter map[string]string) ([]*Device, error) {
 	res := make([]*Device, 0, 20)
-
-	parts := make([]string, 0, len(filter))
+	query := url.Values{}
 	for k, v := range filter {
-		key, value := url.QueryEscape(k), url.QueryEscape(v)
-		parts = append(parts, fmt.Sprintf("%s=%s", key, value))
+		query[k] = []string{v}
 	}
-	query := strings.Join(parts, "&")
-	request := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/devicex/%d?%s", installationID, query), nil)
+	request := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/devicex/%d?%s", installationID, query.Encode()), nil)
 	if err := c.do(request, &res); err != nil {
 		return nil, err
 	}
@@ -242,9 +240,12 @@ func (c *Client) UpdateDevice(dev *Device) (*Device, error) {
 	return device, nil
 }
 
-func (c *Client) Status(installationID int64) (Status, error) {
+func (c *Client) Status(installationID int64, topicFilter []string) (Status, error) {
 	status := Status{}
-	path := fmt.Sprintf("api/v2/status/%d", installationID)
+	query := url.Values{
+		"topics": topicFilter,
+	}
+	path := fmt.Sprintf("api/v2/status/%d?%s", installationID, query.Encode())
 	request := c.newRequest(http.MethodGet, path, nil)
 	if err := c.do(request, &status); err != nil {
 		return nil, err
@@ -261,4 +262,39 @@ func (c *Client) Me() (*User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (c *Client) V3() *V3Client {
+	return &V3Client{c: c}
+}
+
+// Log returns log entries in the V3 format. If opts is nil some default values will be used.
+func (c *V3Client) Log(installationID int64, opts *LogOptionsV3) (*V3Log, error) {
+	log := &V3Log{}
+	if opts == nil {
+		t := time.Now()
+		opts = &LogOptionsV3{
+			From:        t.Add(-time.Hour * 24),
+			To:          t,
+			Limit:       500,
+			Offset:      0,
+			Order:       LogOrderDesc,
+			TopicFilter: []string{},
+		}
+	}
+	query := url.Values{
+		"from":   []string{fmt.Sprintf("%d", opts.From.Unix())},
+		"to":     []string{fmt.Sprintf("%d", opts.To.Unix())},
+		"limit":  []string{fmt.Sprintf("%d", opts.Limit)},
+		"offset": []string{fmt.Sprintf("%d", opts.Offset)},
+		"order":  []string{string(opts.Order)},
+		"topics": opts.TopicFilter,
+	}
+
+	path := fmt.Sprintf("api/v3beta/log/%d?%s", installationID, query.Encode())
+	request := c.c.newRequest(http.MethodGet, path, nil)
+	if err := c.c.do(request, log); err != nil {
+		return nil, err
+	}
+	return log, nil
 }
