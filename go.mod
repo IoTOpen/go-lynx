@@ -1,8 +1,8 @@
-module git.iotopen.se/lib/lynx
+module github.com/IoTOpen/go-lynx
 
 go 1.15
 
 require (
-	github.com/eclipse/paho.mqtt.golang v1.2.0 // indirect
-	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
+	github.com/eclipse/paho.mqtt.golang v1.2.0
+	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
 )

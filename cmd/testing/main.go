@@ -1,7 +1,7 @@
 package main
 
 import (
-	"git.iotopen.se/lib/lynx"
+	"github.com/IoTOpen/go-lynx"
 	"log"
 )
 
