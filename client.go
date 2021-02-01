@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 type Options struct {
@@ -297,4 +298,13 @@ func (c *V3Client) Log(installationID int64, opts *LogOptionsV3) (*V3Log, error)
 		return nil, err
 	}
 	return log, nil
+}
+
+// Ping verify that the api is responding
+func (c *Client) Ping() error {
+	request := c.newRequest(http.MethodGet, "/api/v2/ping", nil)
+	if err := c.do(request, nil); err != nil {
+		return err
+	}
+	return nil
 }
