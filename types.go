@@ -73,6 +73,22 @@ type User struct {
 	Address   Address `json:"address"`
 }
 
+type Schedule struct {
+	ID             int64   `json:"id"`
+	InstallationID int64   `json:"installation_id"`
+	Executor       string  `json:"executor"`
+	Active         bool    `json:"active"`
+	DayOfWeek      string  `json:"day_of_week"`
+	DayOfMonth     string  `json:"day_of_month"`
+	Month          string  `json:"month"`
+	Hour           string  `json:"hour"`
+	Minute         string  `json:"minute"`
+	Topic          string  `json:"topic"`
+	Value          float64 `json:"value"`
+	Created        int64   `json:"created_at"`
+	Updated        int64   `json:"updated_at"`
+}
+
 type LogEntry struct {
 	ClientID       int64   `json:"client_id"`
 	InstallationID int64   `json:"installation_id"`
@@ -92,15 +108,16 @@ type V3Log struct {
 }
 
 type LogOptionsV3 struct {
-	Limit int64
-	Offset int64
-	From time.Time
-	To time.Time
-	Order LogOrder
+	Limit       int64
+	Offset      int64
+	From        time.Time
+	To          time.Time
+	Order       LogOrder
 	TopicFilter []string
 }
 
 type LogOrder string
+
 const (
 	LogOrderDesc = LogOrder("desc")
 	LogOrderAsc  = LogOrder("asc")
