@@ -79,7 +79,7 @@ type Schedule struct {
 	Executor       string  `json:"executor"`
 	Active         bool    `json:"active"`
 	DayOfWeek      string  `json:"day_of_week"`
-	DeyOfMonth     string  `json:"dey_of_month"`
+	DayOfMonth     string  `json:"day_of_month"`
 	Month          string  `json:"month"`
 	Hour           string  `json:"hour"`
 	Minute         string  `json:"minute"`
