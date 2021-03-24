@@ -180,7 +180,7 @@ func (c *Client) UpdateFunction(fn *Function) (*Function, error) {
 	function := &Function{}
 	path := fmt.Sprintf("api/v2/functionx/%d/%d", fn.InstallationID, fn.ID)
 	request := c.newRequest(http.MethodPut, path, requestBody(fn))
-	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(request, function); err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (c *Client) CreateDevice(dev *Device) (*Device, error) {
 	device := &Device{}
 	path := fmt.Sprintf("api/v2/devicex/%d", dev.InstallationID)
 	request := c.newRequest(http.MethodPost, path, requestBody(dev))
-	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(request, device); err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func (c *Client) UpdateDevice(dev *Device) (*Device, error) {
 	device := &Device{}
 	path := fmt.Sprintf("api/v2/devicex/%d/%d", dev.InstallationID, dev.ID)
 	request := c.newRequest(http.MethodPut, path, requestBody(dev))
-	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(request, device); err != nil {
 		return nil, err
 	}
@@ -258,7 +258,7 @@ func (c *Client) Me() (*User, error) {
 	user := &User{}
 	path := "api/v2/user/me"
 	request := c.newRequest(http.MethodGet, path, nil)
-	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(request, user); err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func (c *Client) CreateSchedule(s *Schedule) (*Schedule, error) {
 	schedule := &Schedule{}
 	path := fmt.Sprintf("api/v2/schedule/%d", s.InstallationID)
 	request := c.newRequest(http.MethodPost, path, requestBody(s))
-	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(request, schedule); err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func (c *Client) UpdateSchedule(s *Schedule) (*Schedule, error) {
 	schedule := &Schedule{}
 	path := fmt.Sprintf("api/v2/schedule/%d/%d", s.InstallationID, s.ID)
 	request := c.newRequest(http.MethodPut, path, requestBody(s))
-	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(request, schedule); err != nil {
 		return nil, err
 	}
