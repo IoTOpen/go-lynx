@@ -100,7 +100,7 @@ func (c *Client) newRequest(method, path string, body io.Reader) *http.Request {
 
 func (c *Client) GetInstallations() ([]*Installation, error) {
 	res := make([]*Installation, 0, 20)
-	request := c.newRequest(http.MethodGet, "/api/v2/installationinfo", nil)
+	request := c.newRequest(http.MethodGet, "api/v2/installationinfo", nil)
 	if err := c.do(request, &res); err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (c *Client) GetInstallations() ([]*Installation, error) {
 
 func (c *Client) GetInstallation(installationID int64) (*Installation, error) {
 	res := make([]*Installation, 0, 20)
-	request := c.newRequest(http.MethodGet, "/api/v2/installationinfo", nil)
+	request := c.newRequest(http.MethodGet, "api/v2/installationinfo", nil)
 	if err := c.do(request, &res); err != nil {
 		return nil, err
 	}
