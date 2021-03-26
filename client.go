@@ -98,9 +98,12 @@ func (c *Client) newRequest(method, path string, body io.Reader) *http.Request {
 	return r
 }
 
-func (c *Client) GetInstallations() ([]*Installation, error) {
+func (c *Client) GetInstallations(assignedOnly bool) ([]*Installation, error) {
 	res := make([]*Installation, 0, 20)
-	request := c.newRequest(http.MethodGet, "api/v2/installationinfo", nil)
+	query := url.Values{}
+	query["assigned"] = []string{fmt.Sprintf("%v", assignedOnly)}
+	path := fmt.Sprintf("%s?%s", "api/v2/installationinfo", query.Encode())
+	request := c.newRequest(http.MethodGet, path, nil)
 	if err := c.do(request, &res); err != nil {
 		return nil, err
 	}
@@ -109,7 +112,7 @@ func (c *Client) GetInstallations() ([]*Installation, error) {
 
 func (c *Client) GetInstallation(installationID int64) (*Installation, error) {
 	res := make([]*Installation, 0, 20)
-	request := c.newRequest(http.MethodGet, "api/v2/installationinfo", nil)
+	request := c.newRequest(http.MethodGet, "api/v2/installationinfo?assigned=false", nil)
 	if err := c.do(request, &res); err != nil {
 		return nil, err
 	}
@@ -124,9 +127,11 @@ func (c *Client) GetInstallation(installationID int64) (*Installation, error) {
 	}
 }
 
-func (c *Client) GetInstallationByClientID(clientID int64) (*Installation, error) {
+func (c *Client) GetInstallationByClientID(clientID int64, assignedOnly bool) (*Installation, error) {
 	res := &Installation{}
-	path := fmt.Sprintf("api/v2/installationinfo/%d", clientID)
+	query := url.Values{}
+	query["assigned"] = []string{fmt.Sprintf("%v", assignedOnly)}
+	path := fmt.Sprintf("api/v2/installationinfo/%d?%s", clientID, query.Encode())
 	req := c.newRequest(http.MethodGet, path, nil)
 	if err := c.do(req, res); err != nil {
 		return nil, err
