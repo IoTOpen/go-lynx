@@ -2,6 +2,7 @@ package lynx
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -12,7 +13,9 @@ type Message struct {
 
 func (c *Client) MQTTConnect() error {
 	x := c.Mqtt.Connect()
-	x.WaitTimeout(time.Second)
+	if !x.WaitTimeout(time.Second) {
+		return fmt.Errorf("connection timeout")
+	}
 	return x.Error()
 }
 
