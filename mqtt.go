@@ -13,10 +13,13 @@ type Message struct {
 
 func (c *Client) MQTTConnect() error {
 	x := c.Mqtt.Connect()
-	if !x.WaitTimeout(time.Second) {
+	timedOut := x.WaitTimeout(time.Second)
+	if x.Error() != nil {
+		return x.Error()
+	} else if !timedOut {
 		return fmt.Errorf("connection timeout")
 	}
-	return x.Error()
+	return nil
 }
 
 func (c *Client) MQTTDisconnect() {
