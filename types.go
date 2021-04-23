@@ -26,6 +26,17 @@ type Installation struct {
 	Capabilities []string `json:"capabilities"`
 }
 
+type InstallationRow struct {
+	ID             int64   `json:"id"`
+	Name           string  `json:"name"`
+	ClientID       int64   `json:"client_id"`
+	Created        int64   `json:"created"`
+	OrganizationID int64   `json:"organization_id"`
+	Notes          string  `json:"notes"`
+	Users          []int64 `json:"users"`
+	Meta           Meta    `json:"meta"`
+}
+
 type Function struct {
 	ID             int64  `json:"id"`
 	Type           string `json:"type"`

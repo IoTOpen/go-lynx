@@ -98,6 +98,19 @@ func (c *Client) newRequest(method, path string, body io.Reader) *http.Request {
 	return r
 }
 
+func (c *Client) ListInstallations(filter map[string]string) ([]*InstallationRow, error) {
+	res := make([]*InstallationRow, 0, 20)
+	query := url.Values{}
+	for k, v := range filter {
+		query.Set(k, v)
+	}
+	request := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/installation?%s", query.Encode()), nil)
+	if err := c.do(request, &res); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (c *Client) GetInstallations(assignedOnly bool) ([]*Installation, error) {
 	res := make([]*Installation, 0, 20)
 	query := url.Values{}
