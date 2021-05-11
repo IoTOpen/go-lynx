@@ -6,6 +6,22 @@ import (
 	"net/url"
 )
 
+type Schedule struct {
+	ID             int64   `json:"id"`
+	InstallationID int64   `json:"installation_id"`
+	Executor       string  `json:"executor"`
+	Active         bool    `json:"active"`
+	DayOfWeek      string  `json:"day_of_week"`
+	DayOfMonth     string  `json:"day_of_month"`
+	Month          string  `json:"month"`
+	Hour           string  `json:"hour"`
+	Minute         string  `json:"minute"`
+	Topic          string  `json:"topic"`
+	Value          float64 `json:"value"`
+	Created        int64   `json:"created_at"`
+	Updated        int64   `json:"updated_at"`
+}
+
 func (c *Client) GetSchedules(installationID int64, executor string) ([]*Schedule, error) {
 	res := make([]*Schedule, 0, 20)
 	query := url.Values{}

@@ -6,6 +6,25 @@ import (
 	"net/url"
 )
 
+type Installation struct {
+	ID           int64    `json:"id"`
+	ClientID     int64    `json:"client_id"`
+	Name         string   `json:"name"`
+	Timezone     string   `json:"timezone"`
+	Capabilities []string `json:"capabilities"`
+}
+
+type InstallationRow struct {
+	ID             int64   `json:"id"`
+	Name           string  `json:"name"`
+	ClientID       int64   `json:"client_id"`
+	Created        int64   `json:"created"`
+	OrganizationID int64   `json:"organization_id"`
+	Notes          string  `json:"notes"`
+	Users          []int64 `json:"users"`
+	Meta           Meta    `json:"meta"`
+}
+
 func (c *Client) ListInstallations(filter map[string]string) ([]*InstallationRow, error) {
 	res := make([]*InstallationRow, 0, 20)
 	query := url.Values{}

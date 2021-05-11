@@ -6,6 +6,33 @@ import (
 	"net/url"
 )
 
+type Function struct {
+	ID             int64  `json:"id"`
+	Type           string `json:"type"`
+	InstallationID int64  `json:"installation_id"`
+	Meta           Meta   `json:"meta"`
+	Created        int64  `json:"created"`
+	Updated        int64  `json:"updated"`
+}
+
+type FunctionList []*Function
+
+func (d FunctionList) MapByID() map[int64]*Function {
+	res := make(map[int64]*Function, len(d))
+	for i, v := range d {
+		res[v.ID] = d[i]
+	}
+	return res
+}
+
+func (d FunctionList) MapBy(key string) map[string]*Function {
+	res := make(map[string]*Function, len(d))
+	for i, v := range d {
+		res[v.Meta[key]] = d[i]
+	}
+	return res
+}
+
 func (c *Client) GetFunctions(installationID int64, filter map[string]string) ([]*Function, error) {
 	res := make([]*Function, 0, 20)
 	query := url.Values{}

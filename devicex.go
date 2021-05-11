@@ -6,6 +6,33 @@ import (
 	"net/url"
 )
 
+type Device struct {
+	ID             int64  `json:"id"`
+	Type           string `json:"type"`
+	InstallationID int64  `json:"installation_id"`
+	Meta           Meta   `json:"meta"`
+	Created        int64  `json:"created"`
+	Updated        int64  `json:"updated"`
+}
+
+type DeviceList []*Device
+
+func (d DeviceList) MapByID() map[int64]*Device {
+	res := make(map[int64]*Device, len(d))
+	for i, v := range d {
+		res[v.ID] = d[i]
+	}
+	return res
+}
+
+func (d DeviceList) MapBy(key string) map[string]*Device {
+	res := make(map[string]*Device, len(d))
+	for i, v := range d {
+		res[v.Meta[key]] = d[i]
+	}
+	return res
+}
+
 func (c *Client) GetDevices(installationID int64, filter map[string]string) ([]*Device, error) {
 	res := make([]*Device, 0, 20)
 	query := url.Values{}
