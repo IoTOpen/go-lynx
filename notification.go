@@ -86,9 +86,9 @@ func (c *Client) GetNotificationOutputs(installationID int64) ([]*NotificationOu
 	return res, nil
 }
 
-func (c *Client) GetNotificationOutput(installationID int64, output *NotificationOutput) (*NotificationOutput, error) {
+func (c *Client) GetNotificationOutput(installationID, outputID int64) (*NotificationOutput, error) {
 	o := &NotificationOutput{}
-	path := fmt.Sprintf("api/v2/notification/%d/output/%d", installationID, output.ID)
+	path := fmt.Sprintf("api/v2/notification/%d/output/%d", installationID, outputID)
 	req := c.newRequest(http.MethodGet, path, nil)
 	if err := c.do(req, o); err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (c *Client) CreateNotificationOutput(installationID int64, output *Notifica
 
 func (c *Client) UpdateNotificationOutput(installationID int64, output *NotificationOutput) (*NotificationOutput, error) {
 	o := &NotificationOutput{}
-	path := fmt.Sprintf("api/v2/notification/%d/output", installationID)
+	path := fmt.Sprintf("api/v2/notification/%d/output/%d", installationID, output.ID)
 	req := c.newRequest(http.MethodPut, path, requestBody(output))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(req, o); err != nil {
@@ -119,7 +119,7 @@ func (c *Client) UpdateNotificationOutput(installationID int64, output *Notifica
 }
 
 func (c *Client) DeleteNotificationOutput(installationID int64, output *NotificationOutput) error {
-	path := fmt.Sprintf("api/v2/notification/%d/output", installationID)
+	path := fmt.Sprintf("api/v2/notification/%d/output/%d", installationID, output.ID)
 	req := c.newRequest(http.MethodDelete, path, nil)
 	return c.do(req, nil)
 }
@@ -134,9 +134,9 @@ func (c *Client) GetNotificationOutputExecutors(installationID int64) ([]*Notifi
 	return executors, nil
 }
 
-func (c *Client) GetNotificationOutputExecutor(installationID int64, executor *NotificationOutputExecutor) (*NotificationOutputExecutor, error) {
+func (c *Client) GetNotificationOutputExecutor(installationID, executorID int64) (*NotificationOutputExecutor, error) {
 	ex := &NotificationOutputExecutor{}
-	path := fmt.Sprintf("api/v2/notification/%d/executor/%d", installationID, executor.ID)
+	path := fmt.Sprintf("api/v2/notification/%d/executor/%d", installationID, executorID)
 	req := c.newRequest(http.MethodGet, path, nil)
 	if err := c.do(req, ex); err != nil {
 		return nil, err
