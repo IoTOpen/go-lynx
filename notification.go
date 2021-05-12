@@ -13,9 +13,9 @@ type NotificationMessage struct {
 
 type NotificationOutput struct {
 	ID                           int64             `json:"id"`
+	InstallationID               int64             `json:"installation_id"`
 	NotificationOutputExecutorID int64             `json:"notification_output_executor_id"`
 	NotificationMessageID        int64             `json:"notification_message_id"`
-	InstallationID               int64             `json:"installation_id"`
 	Config                       map[string]string `json:"config"`
 }
 
@@ -96,9 +96,9 @@ func (c *Client) GetNotificationOutput(installationID, outputID int64) (*Notific
 	return o, nil
 }
 
-func (c *Client) CreateNotificationOutput(installationID int64, output *NotificationOutput) (*NotificationOutput, error) {
+func (c *Client) CreateNotificationOutput(output *NotificationOutput) (*NotificationOutput, error) {
 	o := &NotificationOutput{}
-	path := fmt.Sprintf("api/v2/notification/%d/output", installationID)
+	path := fmt.Sprintf("api/v2/notification/%d/output", output.InstallationID)
 	req := c.newRequest(http.MethodPost, path, requestBody(output))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(req, o); err != nil {
@@ -107,9 +107,9 @@ func (c *Client) CreateNotificationOutput(installationID int64, output *Notifica
 	return o, nil
 }
 
-func (c *Client) UpdateNotificationOutput(installationID int64, output *NotificationOutput) (*NotificationOutput, error) {
+func (c *Client) UpdateNotificationOutput(output *NotificationOutput) (*NotificationOutput, error) {
 	o := &NotificationOutput{}
-	path := fmt.Sprintf("api/v2/notification/%d/output/%d", installationID, output.ID)
+	path := fmt.Sprintf("api/v2/notification/%d/output/%d", output.InstallationID, output.ID)
 	req := c.newRequest(http.MethodPut, path, requestBody(output))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(req, o); err != nil {
@@ -118,8 +118,8 @@ func (c *Client) UpdateNotificationOutput(installationID int64, output *Notifica
 	return o, nil
 }
 
-func (c *Client) DeleteNotificationOutput(installationID int64, output *NotificationOutput) error {
-	path := fmt.Sprintf("api/v2/notification/%d/output/%d", installationID, output.ID)
+func (c *Client) DeleteNotificationOutput(output *NotificationOutput) error {
+	path := fmt.Sprintf("api/v2/notification/%d/output/%d", output.InstallationID, output.ID)
 	req := c.newRequest(http.MethodDelete, path, nil)
 	return c.do(req, nil)
 }
