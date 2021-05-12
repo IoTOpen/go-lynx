@@ -90,7 +90,7 @@ func (c *Client) GetNotificationOutput(installationID int64, output *Notificatio
 	o := &NotificationOutput{}
 	path := fmt.Sprintf("api/v2/notification/%d/output/%d", installationID, output.ID)
 	req := c.newRequest(http.MethodGet, path, nil)
-	if err := c.do(req, &o); err != nil {
+	if err := c.do(req, o); err != nil {
 		return nil, err
 	}
 	return o, nil
@@ -101,7 +101,7 @@ func (c *Client) CreateNotificationOutput(installationID int64, output *Notifica
 	path := fmt.Sprintf("api/v2/notification/%d/output", installationID)
 	req := c.newRequest(http.MethodPost, path, requestBody(output))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
-	if err := c.do(req, &o); err != nil {
+	if err := c.do(req, o); err != nil {
 		return nil, err
 	}
 	return o, nil
@@ -112,7 +112,7 @@ func (c *Client) UpdateNotificationOutput(installationID int64, output *Notifica
 	path := fmt.Sprintf("api/v2/notification/%d/output", installationID)
 	req := c.newRequest(http.MethodPut, path, requestBody(output))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
-	if err := c.do(req, &o); err != nil {
+	if err := c.do(req, o); err != nil {
 		return nil, err
 	}
 	return o, nil
@@ -128,7 +128,7 @@ func (c *Client) GetNotificationOutputExecutors(installationID int64) ([]*Notifi
 	executors := make([]*NotificationOutputExecutor, 0, 5)
 	path := fmt.Sprintf("api/v2/notification/%d/executor", installationID)
 	req := c.newRequest(http.MethodGet, path, nil)
-	if err := c.do(req, executors); err != nil {
+	if err := c.do(req, &executors); err != nil {
 		return nil, err
 	}
 	return executors, nil
