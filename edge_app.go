@@ -1,9 +1,11 @@
 package lynx
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 )
 
@@ -55,66 +57,117 @@ func (c *Client) GetEdgeApps() ([]*EdgeApp, error) {
 }
 
 func (c *Client) GetEdgeApp(id int64) (*EdgeApp, error) {
-	a := &EdgeApp{}
+	res := &EdgeApp{}
 	path := fmt.Sprintf("api/v2/edge/app/%d", id)
 	req := c.newRequest(http.MethodGet, path, nil)
-	if err := c.do(req, a); err != nil {
+	if err := c.do(req, res); err != nil {
 		return nil, err
 	}
-	return a, nil
+	return res, nil
 }
 
 func (c *Client) CreateEdgeApp(app *EdgeApp) (*EdgeApp, error) {
-	a := &EdgeApp{}
+	res := &EdgeApp{}
 	path := "api/v2/edge/app"
 	req := c.newRequest(http.MethodPost, path, requestBody(app))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
-	if err := c.do(req, a); err != nil {
+	if err := c.do(req, res); err != nil {
 		return nil, err
 	}
-	return a, nil
+	return res, nil
 }
 
-func (c *Client) DownloadEdgeApp(id int64, version string) (*io.Reader, error) {
-	path := fmt.Sprintf("api/edge/app/%d/download?version=%s", id, version)
+func (c *Client) DownloadEdgeApp(id int64, version string) ([]byte, error) {
+	path := fmt.Sprintf("api/v2/edge/app/%d/download?version=%s", id, version)
 	req := c.newRequest(http.MethodGet, path, nil)
-	//TODO: Download file as stream?
+	resp, err := c.c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if err := requestError(resp); err != nil {
+		return nil, err
+	}
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return bodyBytes, nil
 }
 
 func (c *Client) GetEdgeAppVersions(appID int64, untagged bool) ([]*EdgeAppVersion, error) {
-	versions := make([]*EdgeAppVersion, 0, 10)
-	path := fmt.Sprintf("api/edge/app/%d/version?untagged=%t", appID, untagged)
+	res := make([]*EdgeAppVersion, 0, 10)
+	path := fmt.Sprintf("api/v2/edge/app/%d/version?untagged=%t", appID, untagged)
 	req := c.newRequest(http.MethodGet, path, nil)
-	if err := c.do(req, &versions); err != nil {
+	if err := c.do(req, &res); err != nil {
 		return nil, err
 	}
-	return versions, nil
+	return res, nil
 }
 
-func (c *Client) CreateEdgeAppVersion() {
-	// TODO: Files?
+func (c *Client) CreateEdgeAppVersion(appID int64, luaFile, jsonFile io.Reader) (string, error) {
+	res := &struct {
+		Hash string `json:"hash"`
+	}{}
+	path := fmt.Sprintf("api/v2/edge/app/%d/version", appID)
+	body := new(bytes.Buffer)
+	w := multipart.NewWriter(body)
+	if luaFile != nil {
+		fw, err := w.CreateFormFile("app_lua", "app.lua")
+		if err != nil {
+			return "", err
+		}
+		io.Copy(fw, luaFile)
+	}
+	if jsonFile != nil {
+		fw, err := w.CreateFormFile("app_json", "app.json")
+		if err != nil {
+			return "", err
+		}
+		io.Copy(fw, jsonFile)
+	}
+	w.Close()
+	req := c.newRequest(http.MethodPost, path, body)
+	req.ParseMultipartForm(0)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	if err := c.do(req, res); err != nil {
+		return "", err
+	}
+	return res.Hash, nil
 }
 
 func (c *Client) NameEdgeAppVersion(appID int64, version *EdgeAppVersion) (*EdgeAppVersion, error) {
-	ver := &EdgeAppVersion{}
-	path := fmt.Sprintf("api/edge/app/%d/publish", appID)
+	res := &EdgeAppVersion{}
+	path := fmt.Sprintf("api/v2/edge/app/%d/publish", appID)
 	req := c.newRequest(http.MethodPost, path, requestBody(version))
-	if err := c.do(req, ver); err != nil {
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	if err := c.do(req, res); err != nil {
 		return nil, err
 	}
-	return ver, nil
+	return res, nil
 }
 
-func (c *Client) GetEdgeAppConfigOptions(appID int64) (json.RawMessage, error) {
-	path := fmt.Sprintf("api/edge/app/%d/configure", appID)
+func (c *Client) GetEdgeAppConfigOptions(appID int64, version string) (json.RawMessage, error) {
+	path := fmt.Sprintf("api/v2/edge/app/%d/configure?version=%s", appID, version)
 	req := c.newRequest(http.MethodGet, path, nil)
-	//TODO: Do the request
-	return nil, nil
+	resp, err := c.c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	err = requestError(resp)
+	if err != nil {
+		return nil, err
+	}
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return json.RawMessage(bodyBytes), nil
 }
 
 func (c *Client) GetConfiguredEdgeApps(installationID int64) ([]*EdgeAppConfig, error) {
 	res := make([]*EdgeAppConfig, 0, 10)
-	path := fmt.Sprintf("api/edge/app/configured/%d", installationID)
+	path := fmt.Sprintf("api/v2/edge/app/configured/%d", installationID)
 	req := c.newRequest(http.MethodGet, path, nil)
 	if err := c.do(req, &res); err != nil {
 		return nil, err
@@ -123,11 +176,39 @@ func (c *Client) GetConfiguredEdgeApps(installationID int64) ([]*EdgeAppConfig, 
 }
 
 func (c *Client) CreateEdgeAppInstance(config *EdgeAppConfig) (*EdgeAppConfig, error) {
-	con := &EdgeAppConfig{}
-	path := fmt.Sprintf("api/edge/app/configured/%d", config.InstallationID)
-	req := c.newRequest(http.MethodPost, path, requestBody(con))
-	if err := c.do(req, con); err != nil {
+	res := &EdgeAppConfig{}
+	path := fmt.Sprintf("api/v2/edge/app/configured/%d", config.InstallationID)
+	req := c.newRequest(http.MethodPost, path, requestBody(config))
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	if err := c.do(req, res); err != nil {
 		return nil, err
 	}
-	return con, nil
+	return res, nil
+}
+
+func (c *Client) GetEdgeAppInstance(InstallationID, instanceID int64) (*EdgeAppConfig, error) {
+	res := &EdgeAppConfig{}
+	path := fmt.Sprintf("api/v2/edge/app/configured/%d/%d", InstallationID, instanceID)
+	req := c.newRequest(http.MethodGet, path, nil)
+	if err := c.do(req, res); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (c *Client) UpdateEdgeAppInstance(instanceID int64, config *EdgeAppConfig) (*EdgeAppConfig, error) {
+	res := &EdgeAppConfig{}
+	path := fmt.Sprintf("api/v2/edge/app/configured/%d/%d", config.InstallationID, instanceID)
+	req := c.newRequest(http.MethodPut, path, requestBody(config))
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	if err := c.do(req, res); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (c *Client) DeleteEdgeAppInstance(instanceID int64, config *EdgeAppConfig) error {
+	path := fmt.Sprintf("/api/v2/edge/app/configured/%d/%d", config.InstallationID, instanceID)
+	req := c.newRequest(http.MethodDelete, path, nil)
+	return c.do(req, nil)
 }
