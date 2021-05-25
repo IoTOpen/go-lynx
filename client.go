@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"io"
 	"net/http"
 	"strings"
 	"time"
-
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 // Options is connection options for the client
@@ -58,9 +57,11 @@ func requestError(response *http.Response) error {
 		err := Error{
 			Code: response.StatusCode,
 		}
-		jsonError := json.NewDecoder(response.Body).Decode(&err)
-		if jsonError != nil {
-			return jsonError
+		if response.StatusCode != http.StatusNoContent {
+			jsonError := json.NewDecoder(response.Body).Decode(&err)
+			if jsonError != nil {
+				return jsonError
+			}
 		}
 		return err
 	}
@@ -82,19 +83,10 @@ func (c *Client) do(r *http.Request, out interface{}) error {
 	if err := requestError(response); err != nil {
 		return err
 	}
-	if response.StatusCode == http.StatusOK {
-		if out != nil {
-			if err := json.NewDecoder(response.Body).Decode(out); err != nil {
-				return err
-			}
-		}
-	} else {
-		err := Error{Message: ""}
-		if err := json.NewDecoder(response.Body).Decode(&err); err != nil {
+	if out != nil {
+		if err := json.NewDecoder(response.Body).Decode(out); err != nil {
 			return err
 		}
-		err.Code = response.StatusCode
-		return err
 	}
 	return nil
 }

@@ -128,7 +128,6 @@ func (c *Client) CreateEdgeAppVersion(appID int64, luaFile, jsonFile io.Reader) 
 	}
 	w.Close()
 	req := c.newRequest(http.MethodPost, path, body)
-	req.ParseMultipartForm(0)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	if err := c.do(req, res); err != nil {
 		return "", err
@@ -196,9 +195,9 @@ func (c *Client) GetEdgeAppInstance(InstallationID, instanceID int64) (*EdgeAppC
 	return res, nil
 }
 
-func (c *Client) UpdateEdgeAppInstance(instanceID int64, config *EdgeAppConfig) (*EdgeAppConfig, error) {
+func (c *Client) UpdateEdgeAppInstance(config *EdgeAppConfig) (*EdgeAppConfig, error) {
 	res := &EdgeAppConfig{}
-	path := fmt.Sprintf("api/v2/edge/app/configured/%d/%d", config.InstallationID, instanceID)
+	path := fmt.Sprintf("api/v2/edge/app/configured/%d/%d", config.InstallationID, config.ID)
 	req := c.newRequest(http.MethodPut, path, requestBody(config))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(req, res); err != nil {
@@ -207,8 +206,8 @@ func (c *Client) UpdateEdgeAppInstance(instanceID int64, config *EdgeAppConfig) 
 	return res, nil
 }
 
-func (c *Client) DeleteEdgeAppInstance(instanceID int64, config *EdgeAppConfig) error {
-	path := fmt.Sprintf("/api/v2/edge/app/configured/%d/%d", config.InstallationID, instanceID)
+func (c *Client) DeleteEdgeAppInstance(config *EdgeAppConfig) error {
+	path := fmt.Sprintf("/api/v2/edge/app/configured/%d/%d", config.InstallationID, config.ID)
 	req := c.newRequest(http.MethodDelete, path, nil)
 	return c.do(req, nil)
 }
