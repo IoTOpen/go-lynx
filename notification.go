@@ -13,6 +13,7 @@ type NotificationMessage struct {
 
 type NotificationOutput struct {
 	ID                           int64             `json:"id"`
+	Name                         string            `json:"name"`
 	InstallationID               int64             `json:"installation_id"`
 	NotificationOutputExecutorID int64             `json:"notification_output_executor_id"`
 	NotificationMessageID        int64             `json:"notification_message_id"`
