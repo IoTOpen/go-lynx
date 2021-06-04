@@ -207,7 +207,7 @@ func (c *Client) UpdateEdgeAppInstance(config *EdgeAppConfig) (*EdgeAppConfig, e
 }
 
 func (c *Client) DeleteEdgeAppInstance(config *EdgeAppConfig) error {
-	path := fmt.Sprintf("/api/v2/edge/app/configured/%d/%d", config.InstallationID, config.ID)
+	path := fmt.Sprintf("api/v2/edge/app/configured/%d/%d", config.InstallationID, config.ID)
 	req := c.newRequest(http.MethodDelete, path, nil)
 	return c.do(req, nil)
 }
