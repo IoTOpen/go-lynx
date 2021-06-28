@@ -25,6 +25,16 @@ type InstallationRow struct {
 	Meta           Meta    `json:"meta"`
 }
 
+func (c *Client) GetInstallationRow(installationID int64) (*InstallationRow, error) {
+	res := &InstallationRow{}
+	path := fmt.Sprintf("api/v2/installation/%d", installationID)
+	req := c.newRequest(http.MethodGet, path, nil)
+	if err := c.do(req, res); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (c *Client) ListInstallations(filter map[string]string) ([]*InstallationRow, error) {
 	res := make([]*InstallationRow, 0, 20)
 	query := url.Values{}
