@@ -36,6 +36,11 @@ func (c *Client) Publish(topic string, payload interface{}, qos byte) error {
 	return token.Error()
 }
 
+// NewMqttOptions returns default mqtt configuration
+// conf is a subset of a viper config which can include:
+// Broker, the MQTT broker URI
+// client_id, id to be used by the client
+// connection_log, boolean value for enabling/disabling connection logging
 func NewMqttOptions(conf *viper.Viper, onConnect mqtt.OnConnectHandler, onLost mqtt.ConnectionLostHandler) *mqtt.ClientOptions {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(conf.GetString("broker"))
