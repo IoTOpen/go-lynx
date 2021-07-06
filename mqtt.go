@@ -3,6 +3,9 @@ package lynx
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/spf13/viper"
+	"log"
 	"time"
 )
 
@@ -31,4 +34,37 @@ func (c *Client) Publish(topic string, payload interface{}, qos byte) error {
 	token := c.Mqtt.Publish(topic, qos, false, data)
 	token.WaitTimeout(time.Second)
 	return token.Error()
+}
+
+// NewMqttOptions returns default mqtt configuration
+// conf is a subset of a viper config which can include:
+// broker, the MQTT broker URI
+// client_id, id to be used by the client
+// connection_log, boolean value for enabling/disabling connection logging
+func NewMqttOptions(conf *viper.Viper, onConnect mqtt.OnConnectHandler, onLost mqtt.ConnectionLostHandler) *mqtt.ClientOptions {
+	opts := mqtt.NewClientOptions()
+	opts.AddBroker(conf.GetString("broker"))
+	opts.SetClientID(conf.GetString("client_id"))
+	opts.SetCleanSession(true)
+	opts.SetConnectRetryInterval(time.Second * 5)
+	opts.SetConnectTimeout(time.Second)
+	opts.SetAutoReconnect(true)
+
+	opts.SetConnectionLostHandler(func(c mqtt.Client, err error) {
+		if conf.GetBool("connection_log") {
+			log.Println("MQTT: connection lost:", err.Error())
+		}
+		if onLost != nil {
+			onLost(c, err)
+		}
+	})
+	opts.SetOnConnectHandler(func(c mqtt.Client) {
+		if conf.GetBool("connection_log") {
+			log.Println("MQTT: connected")
+		}
+		if onConnect != nil {
+			onConnect(c)
+		}
+	})
+	return opts
 }
