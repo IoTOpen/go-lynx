@@ -14,6 +14,7 @@ type User struct {
 	Role          int64   `json:"role"`
 	SmsLogin      bool    `json:"sms_login"`
 	Address       Address `json:"address"`
+	Mobile        string  `json:"mobile"`
 	Organizations []int64 `json:"organisations"`
 }
 
