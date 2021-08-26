@@ -35,6 +35,17 @@ func (c *Client) GetInstallationRow(installationID int64) (*InstallationRow, err
 	return res, nil
 }
 
+func (c *Client) UpdateInstallation(i *InstallationRow) (*InstallationRow, error) {
+	res := &InstallationRow{}
+	path := fmt.Sprintf("api/v2/installation/%d", i.ID)
+	request := c.newRequest(http.MethodPut, path, requestBody(i))
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	if err := c.do(request, res); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (c *Client) ListInstallations(filter map[string]string) ([]*InstallationRow, error) {
 	res := make([]*InstallationRow, 0, 20)
 	query := url.Values{}
