@@ -6,6 +6,8 @@ import (
 	"net/url"
 )
 
+const userMePath = "api/v2/user/me"
+
 type User struct {
 	ID            int64   `json:"id"`
 	Email         string  `json:"email"`
@@ -27,8 +29,28 @@ type Address struct {
 
 func (c *Client) Me() (*User, error) {
 	user := &User{}
-	path := "api/v2/user/me"
-	request := c.newRequest(http.MethodGet, path, nil)
+	request := c.newRequest(http.MethodGet, userMePath, nil)
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	if err := c.do(request, user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (c *Client) UpdateMe(u *User) (*User, error) {
+	user := &User{}
+	request := c.newRequest(http.MethodPut, userMePath, requestBody(u))
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	if err := c.do(request, user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (c *Client) UpdateUser(u *User) (*User, error) {
+	user := &User{}
+	path := fmt.Sprintf("api/v2/user/%d", u.ID)
+	request := c.newRequest(http.MethodPut, path, requestBody(u))
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	if err := c.do(request, user); err != nil {
 		return nil, err
