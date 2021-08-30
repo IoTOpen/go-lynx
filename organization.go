@@ -32,7 +32,7 @@ type OrganizationSimple struct {
 
 func (c *Client) ListOrganizationSimple() ([]*OrganizationSimple, error) {
 	res := make([]*OrganizationSimple, 0, 5)
-	req := c.newRequest(http.MethodGet, "/api/v2/organization?minimal=true", nil)
+	req := c.newRequest(http.MethodGet, "api/v2/organization?minimal=true", nil)
 	if err := c.do(req, &res); err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (c *Client) ListOrganizationSimple() ([]*OrganizationSimple, error) {
 
 func (c *Client) ListOrganization() ([]*Organization, error) {
 	res := make([]*Organization, 0, 5)
-	req := c.newRequest(http.MethodGet, "/api/v2/organization", nil)
+	req := c.newRequest(http.MethodGet, "api/v2/organization", nil)
 	if err := c.do(req, &res); err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *Client) ListOrganization() ([]*Organization, error) {
 
 func (c *Client) GetOrganization(organizationID int64) (*Organization, error) {
 	res := &Organization{}
-	path := fmt.Sprintf("/api/v2/organization/%d", organizationID)
+	path := fmt.Sprintf("api/v2/organization/%d", organizationID)
 	req := c.newRequest(http.MethodGet, path, nil)
 	if err := c.do(req, &res); err != nil {
 		return nil, err
