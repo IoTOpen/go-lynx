@@ -7,11 +7,13 @@ import (
 )
 
 type Installation struct {
-	ID           int64    `json:"id"`
-	ClientID     int64    `json:"client_id"`
-	Name         string   `json:"name"`
-	Timezone     string   `json:"timezone"`
-	Capabilities []string `json:"capabilities"`
+	ID             int64    `json:"id"`
+	ClientID       int64    `json:"client_id"`
+	Name           string   `json:"name"`
+	Timezone       string   `json:"timezone"`
+	Capabilities   []string `json:"capabilities"`
+	OrganizationID int64    `json:"organization_id"`
+	Assigned       bool     `json:"assigned"`
 }
 
 type InstallationRow struct {
@@ -23,6 +25,7 @@ type InstallationRow struct {
 	Notes          string  `json:"notes"`
 	Users          []int64 `json:"users"`
 	Meta           Meta    `json:"meta"`
+	ProtectedMeta  Meta    `json:"protected_meta"`
 }
 
 func (c *Client) GetInstallationRow(installationID int64) (*InstallationRow, error) {
