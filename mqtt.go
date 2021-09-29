@@ -12,6 +12,7 @@ import (
 type Message struct {
 	Value     float64 `json:"value"`
 	Timestamp int64   `json:"timestamp,omitempty"`
+	Msg       string  `json:"msg"`
 }
 
 func (c *Client) MQTTConnect() error {
