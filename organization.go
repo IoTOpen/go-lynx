@@ -3,6 +3,7 @@ package lynx
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type Organization struct {
@@ -24,10 +25,13 @@ type OrganizationChild struct {
 	ID   int64  `json:"id"`
 }
 
-func (c *Client) ListOrganization(minimal bool) ([]*Organization, error) {
+func (c *Client) ListOrganization(filter map[string]string) ([]*Organization, error) {
 	res := make([]*Organization, 0, 5)
-	path := fmt.Sprintf("api/v2/organization?minimal=%t", minimal)
-	req := c.newRequest(http.MethodGet, path, nil)
+	query := url.Values{}
+	for k, v := range filter {
+		query.Set(k, v)
+	}
+	req := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/organization?%s", query.Encode()), nil)
 	if err := c.do(req, &res); err != nil {
 		return nil, err
 	}
