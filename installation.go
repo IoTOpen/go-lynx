@@ -49,12 +49,9 @@ func (c *Client) UpdateInstallation(i *InstallationRow) (*InstallationRow, error
 	return res, nil
 }
 
-func (c *Client) ListInstallations(filter map[string]string) ([]*InstallationRow, error) {
+func (c *Client) ListInstallations(filter Filter) ([]*InstallationRow, error) {
 	res := make([]*InstallationRow, 0, 20)
-	query := url.Values{}
-	for k, v := range filter {
-		query.Set(k, v)
-	}
+	query := filter.ToURLValues()
 	request := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/installation?%s", query.Encode()), nil)
 	if err := c.do(request, &res); err != nil {
 		return nil, err
