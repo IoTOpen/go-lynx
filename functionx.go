@@ -3,6 +3,7 @@ package lynx
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type Function struct {
@@ -10,6 +11,7 @@ type Function struct {
 	Type           string `json:"type"`
 	InstallationID int64  `json:"installation_id"`
 	Meta           Meta   `json:"meta"`
+	ProtectedMeta  Meta   `json:"protected_meta"`
 	Created        int64  `json:"created"`
 	Updated        int64  `json:"updated"`
 }
@@ -32,7 +34,7 @@ func (d FunctionList) MapBy(key string) map[string]*Function {
 	return res
 }
 
-func (c *Client) GetFunctions(installationID int64, filter Filter) ([]*Function, error) {
+func (c *Client) GetFunctions(installationID int64, filter Filter) (FunctionList, error) {
 	res := make([]*Function, 0, 20)
 	query := filter.ToURLValues()
 	request := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/functionx/%d?%s", installationID, query.Encode()), nil)
@@ -80,4 +82,55 @@ func (c *Client) UpdateFunction(fn *Function) (*Function, error) {
 		return nil, err
 	}
 	return function, nil
+}
+
+func (c *Client) GetFunctionMeta(installationID, functionID int64, key string) (*MetaObject, error) {
+	mo := &MetaObject{}
+	path := fmt.Sprintf("api/v2/functionx/%d/%d/meta/%s", installationID, functionID, key)
+	request := c.newRequest(http.MethodGet, path, nil)
+	if err := c.do(request, mo); err != nil {
+		return nil, err
+	}
+	return mo, nil
+}
+
+func (c *Client) CreateFunctionMeta(installationID, functionID int64, key string, meta MetaObject, silent bool) (*MetaObject, error) {
+	query := url.Values{
+		"silent": []string{fmt.Sprintf("%t", silent)},
+	}
+	mo := &MetaObject{}
+	path := fmt.Sprintf("api/v2/functionx/%d/%d/meta/%s?%s", installationID, functionID, key, query.Encode())
+	request := c.newRequest(http.MethodPost, path, requestBody(meta))
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	if err := c.do(request, mo); err != nil {
+		return nil, err
+	}
+	return mo, nil
+}
+
+func (c *Client) UpdateFunctionMeta(installationID, functionID int64, key string, meta MetaObject, silent, createMissing bool) (*MetaObject, error) {
+	query := url.Values{
+		"silent":         []string{fmt.Sprintf("%t", silent)},
+		"create_missing": []string{fmt.Sprintf("%t", createMissing)},
+	}
+	mo := &MetaObject{}
+	path := fmt.Sprintf("api/v2/functionx/%d/%d/meta/%s?%s", installationID, functionID, key, query.Encode())
+	request := c.newRequest(http.MethodPut, path, requestBody(meta))
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	if err := c.do(request, mo); err != nil {
+		return nil, err
+	}
+	return mo, nil
+}
+
+func (c *Client) DeleteFunctionMeta(installationID, functionID int64, key string, silent bool) error {
+	query := url.Values{
+		"silent": []string{fmt.Sprintf("%t", silent)},
+	}
+	path := fmt.Sprintf("api/v2/functionx/%d/%d/meta/%s?%s", installationID, functionID, key, query.Encode())
+	request := c.newRequest(http.MethodDelete, path, nil)
+	if err := c.do(request, nil); err != nil {
+		return err
+	}
+	return nil
 }
