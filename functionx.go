@@ -3,7 +3,6 @@ package lynx
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 )
 
 type Function struct {
@@ -33,12 +32,9 @@ func (d FunctionList) MapBy(key string) map[string]*Function {
 	return res
 }
 
-func (c *Client) GetFunctions(installationID int64, filter map[string]string) ([]*Function, error) {
+func (c *Client) GetFunctions(installationID int64, filter Filter) ([]*Function, error) {
 	res := make([]*Function, 0, 20)
-	query := url.Values{}
-	for k, v := range filter {
-		query[k] = []string{v}
-	}
+	query := filter.ToURLValues()
 	request := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/functionx/%d?%s", installationID, query.Encode()), nil)
 	if err := c.do(request, &res); err != nil {
 		return nil, err

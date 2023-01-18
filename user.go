@@ -3,7 +3,6 @@ package lynx
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 )
 
 const userMePath = "api/v2/user/me"
@@ -58,14 +57,10 @@ func (c *Client) UpdateUser(u *User) (*User, error) {
 	return user, nil
 }
 
-func (c *Client) GetUsers(filter map[string]string) ([]*User, error) {
+func (c *Client) GetUsers(filter Filter) ([]*User, error) {
 	res := make([]*User, 0, 5)
-	query := url.Values{}
-	for k, v := range filter {
-		query[k] = []string{v}
-	}
+	query := filter.ToURLValues()
 	req := c.newRequest(http.MethodGet, fmt.Sprintf("api/v2/user?%s", query.Encode()), nil)
-
 	if err := c.do(req, &res); err != nil {
 		return nil, err
 	}

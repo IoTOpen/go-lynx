@@ -3,13 +3,17 @@ package lynx
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
-type Error struct {
-	Code    int    `json:"-"`
-	Message string `json:"message"`
-}
+type (
+	Error struct {
+		Code    int    `json:"-"`
+		Message string `json:"message"`
+	}
+	Filter map[string]string
+)
 
 func (e Error) Error() string {
 	return fmt.Sprintf("%s (%s - %d)", e.Message, http.StatusText(e.Code), e.Code)
@@ -27,4 +31,12 @@ func (m Meta) AsFloat64(key string) (float64, error) {
 
 func (m Meta) AsBool(key string) (bool, error) {
 	return strconv.ParseBool(m[key])
+}
+
+func (f Filter) ToURLValues() url.Values {
+	query := make(url.Values, len(f))
+	for k, v := range f {
+		query.Set(k, v)
+	}
+	return query
 }
