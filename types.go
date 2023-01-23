@@ -40,3 +40,8 @@ func (f Filter) ToURLValues() url.Values {
 	}
 	return query
 }
+
+type MetaObject struct {
+	Value     string
+	Protected bool
+}
