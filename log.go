@@ -2,10 +2,13 @@ package lynx
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
 )
+
+const maxTopicQueryLength = 30
 
 type LogEntry struct {
 	ClientID       int64   `json:"client_id"`
@@ -50,11 +53,17 @@ func (s Status) Map() map[string]*LogEntry {
 }
 func (c *Client) Status(installationID int64, topicFilter []string) (Status, error) {
 	status := Status{}
-	query := url.Values{
-		"topics": topicFilter,
+	query := url.Values{}
+	method := http.MethodGet
+	var body io.Reader
+	if len(topicFilter) > maxTopicQueryLength {
+		method = http.MethodPost
+		body = requestBody(topicFilter)
+	} else {
+		query["topics"] = topicFilter
 	}
 	path := fmt.Sprintf("api/v2/status/%d?%s", installationID, query.Encode())
-	request := c.newRequest(http.MethodGet, path, nil)
+	request := c.newRequest(method, path, body)
 	if err := c.do(request, &status); err != nil {
 		return nil, err
 	}
@@ -81,11 +90,18 @@ func (c *V3Client) Log(installationID int64, opts *LogOptionsV3) (*V3Log, error)
 		"limit":  []string{fmt.Sprintf("%d", opts.Limit)},
 		"offset": []string{fmt.Sprintf("%d", opts.Offset)},
 		"order":  []string{string(opts.Order)},
-		"topics": opts.TopicFilter,
+	}
+	method := http.MethodGet
+	var body io.Reader
+	if len(opts.TopicFilter) > maxTopicQueryLength {
+		method = http.MethodPost
+		body = requestBody(opts.TopicFilter)
+	} else {
+		query["topics"] = opts.TopicFilter
 	}
 
 	path := fmt.Sprintf("api/v3beta/log/%d?%s", installationID, query.Encode())
-	request := c.c.newRequest(http.MethodGet, path, nil)
+	request := c.c.newRequest(method, path, body)
 	if err := c.c.do(request, log); err != nil {
 		return nil, err
 	}
