@@ -75,6 +75,19 @@ func (c *Client) UpdateOrganization(org *Organization) (*Organization, error) {
 	return organization, nil
 }
 
+func (c *Client) DeleteOrganization(org *Organization, force bool) error {
+	qs := ""
+	if force {
+		qs = "&force=true"
+	}
+	path := fmt.Sprintf("api/v2/organization/%d%s", org.ID, qs)
+	req := c.newRequest(http.MethodDelete, path, nil)
+	if err := c.do(req, nil); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *Client) GetOrganizationMeta(organizationID int64, key string) (*MetaObject, error) {
 	mo := &MetaObject{}
 	path := fmt.Sprintf("api/v2/organization/%d/meta/%s", organizationID, key)
