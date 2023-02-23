@@ -56,6 +56,20 @@ func (c *Client) GetEdgeApps() ([]*EdgeApp, error) {
 	return res, nil
 }
 
+func (c *Client) GetEdgeAppsOrganization(organizationID int64, available bool) ([]*EdgeApp, error) {
+	res := make([]*EdgeApp, 0, 10)
+	qs := ""
+	if available {
+		qs = "?available=true"
+	}
+	path := fmt.Sprintf("api/v2/edge/app/organization/%d%s", organizationID, qs)
+	req := c.newRequest(http.MethodGet, path, nil)
+	if err := c.do(req, &res); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (c *Client) GetEdgeApp(id int64) (*EdgeApp, error) {
 	res := &EdgeApp{}
 	path := fmt.Sprintf("api/v2/edge/app/%d", id)
