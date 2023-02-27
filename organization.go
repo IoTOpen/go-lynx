@@ -88,6 +88,15 @@ func (c *Client) DeleteOrganization(org *Organization, force bool) error {
 	return nil
 }
 
+func (c *Client) ForcePasswordReset(organizationID int64) error {
+	path := fmt.Sprintf("api/v2/organization/%d/force_password_reset", organizationID)
+	req := c.newRequest(http.MethodPost, path, nil)
+	if err := c.do(req, nil); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *Client) GetOrganizationMeta(organizationID int64, key string) (*MetaObject, error) {
 	mo := &MetaObject{}
 	path := fmt.Sprintf("api/v2/organization/%d/meta/%s", organizationID, key)
