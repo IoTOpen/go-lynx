@@ -1,14 +1,12 @@
 package lynx
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
 )
-
-const maxTopicQueryLength = 30
 
 type LogEntry struct {
 	ClientID       int64   `json:"client_id"`
@@ -53,21 +51,28 @@ func (s Status) Map() map[string]*LogEntry {
 }
 func (c *Client) Status(installationID int64, topicFilter []string) (Status, error) {
 	status := Status{}
-	query := url.Values{}
-	method := http.MethodGet
-	var body io.Reader
-	if len(topicFilter) > maxTopicQueryLength {
-		method = http.MethodPost
-		body = requestBody(topicFilter)
-	} else {
-		query["topics"] = topicFilter
+	query := url.Values{
+		"topics": topicFilter,
 	}
 	path := fmt.Sprintf("api/v2/status/%d?%s", installationID, query.Encode())
-	request := c.newRequest(method, path, body)
-	if err := c.do(request, &status); err != nil {
-		return nil, err
+	req := c.newRequest(http.MethodGet, path, nil)
+	err := c.do(req, &status)
+	getErr := Error{}
+	if errors.As(err, &getErr) && getErr.Code == http.StatusRequestURITooLong {
+		path = fmt.Sprintf("api/v2/status/%d", installationID)
+		body := requestBody(topicFilter)
+		req = c.newRequest(http.MethodPost, path, body)
+		if postErr := c.do(req, &status); postErr != nil {
+			newErr := Error{}
+			if errors.As(postErr, &newErr); newErr.Code == http.StatusMethodNotAllowed {
+				return nil, err
+			}
+			return nil, postErr
+		}
+		return status, nil
 	}
-	return status, nil
+
+	return status, err
 }
 
 // Log returns log entries in the V3 format. If opts is nil some default values will be used.
@@ -90,20 +95,27 @@ func (c *V3Client) Log(installationID int64, opts *LogOptionsV3) (*V3Log, error)
 		"limit":  []string{fmt.Sprintf("%d", opts.Limit)},
 		"offset": []string{fmt.Sprintf("%d", opts.Offset)},
 		"order":  []string{string(opts.Order)},
-	}
-	method := http.MethodGet
-	var body io.Reader
-	if len(opts.TopicFilter) > maxTopicQueryLength {
-		method = http.MethodPost
-		body = requestBody(opts.TopicFilter)
-	} else {
-		query["topics"] = opts.TopicFilter
+		"topics": opts.TopicFilter,
 	}
 
 	path := fmt.Sprintf("api/v3beta/log/%d?%s", installationID, query.Encode())
-	request := c.c.newRequest(method, path, body)
-	if err := c.c.do(request, log); err != nil {
-		return nil, err
+	req := c.c.newRequest(http.MethodGet, path, nil)
+	err := c.c.do(req, log)
+	getErr := Error{}
+	if errors.As(err, &getErr) && getErr.Code == http.StatusRequestURITooLong {
+		delete(query, "topics")
+		path = fmt.Sprintf("api/v3beta/log/%d?%s", installationID, query.Encode())
+		body := requestBody(opts.TopicFilter)
+		req = c.c.newRequest(http.MethodPost, path, body)
+		if postErr := c.c.do(req, log); postErr != nil {
+			newErr := Error{}
+			if errors.As(postErr, &newErr); newErr.Code == http.StatusMethodNotAllowed {
+				return nil, err
+			}
+			return nil, postErr
+		}
+		return log, nil
 	}
-	return log, nil
+
+	return log, err
 }
