@@ -57,6 +57,9 @@ func requestError(response *http.Response) error {
 		err := Error{
 			Code: response.StatusCode,
 		}
+		if response.StatusCode == http.StatusRequestURITooLong {
+			return err
+		}
 		if response.StatusCode != http.StatusNoContent {
 			jsonError := json.NewDecoder(response.Body).Decode(&err)
 			if jsonError != nil {
