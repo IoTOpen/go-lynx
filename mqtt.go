@@ -2,6 +2,7 @@ package lynx
 
 import (
 	"encoding/json"
+	"github.com/eclipse/paho.mqtt.golang"
 	"fmt"
 	"github.com/spf13/viper"
 	"log"
