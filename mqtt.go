@@ -3,7 +3,7 @@ package lynx
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/eclipse/paho.mqtt.golang"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/spf13/viper"
 	"log"
 	"time"
@@ -11,8 +11,8 @@ import (
 
 type Message struct {
 	Value     float64 `json:"value"`
-	Timestamp int64   `json:"timestamp,omitempty"`
-	Msg       string  `json:"msg"`
+	Timestamp float64 `json:"timestamp,omitempty"`
+	Msg       string  `json:"msg,omitempty"`
 }
 
 func (c *Client) MQTTConnect() error {
