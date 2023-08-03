@@ -29,6 +29,15 @@ type NotificationOutputExecutor struct {
 	Secret         string            `json:"secret"`
 }
 
+type NotificationExecutorPayload struct {
+	Message        string            `json:"message"`
+	OutputConfig   map[string]string `json:"output_config"`
+	ExecutorConfig map[string]string `json:"executor_config"`
+	Organization   Organization      `json:"organization"`
+	Installation   Installation      `json:"installation"`
+	Payload        map[string]any    `json:"payload"`
+}
+
 func (c *Client) GetNotificationMessages(installationID int64) ([]*NotificationMessage, error) {
 	res := make([]*NotificationMessage, 0, 20)
 	path := fmt.Sprintf("api/v2/notification/%d/message", installationID)
