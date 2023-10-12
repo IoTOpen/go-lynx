@@ -49,3 +49,11 @@ func (a AuthBearer) SetMQTTAuth(o *mqtt.ClientOptions) {
 	o.SetUsername("bearer")
 	o.SetPassword(a.Token)
 }
+
+type AuthNone struct{}
+
+func (a AuthNone) SetHTTPAuth(r *http.Request) {
+}
+
+func (a AuthNone) SetMQTTAuth(o *mqtt.ClientOptions) {
+}

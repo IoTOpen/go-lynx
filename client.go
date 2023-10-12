@@ -16,6 +16,7 @@ type Options struct {
 	Authenticator Authentication
 	APIBase       string
 	MqttOptions   *mqtt.ClientOptions
+	HTTPClient    *http.Client
 }
 
 // Client is the main client for Lynx integration
@@ -43,10 +44,13 @@ func NewClient(options *Options) *Client {
 		options.Authenticator.SetMQTTAuth(options.MqttOptions)
 		mq = mqtt.NewClient(options.MqttOptions)
 	}
-	return &Client{
-		c: &http.Client{
+	if options.HTTPClient == nil {
+		options.HTTPClient = &http.Client{
 			Timeout: time.Second * 5,
-		},
+		}
+	}
+	return &Client{
+		c:    options.HTTPClient,
 		opt:  options,
 		Mqtt: mq,
 	}
