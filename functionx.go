@@ -18,18 +18,30 @@ type Function struct {
 
 type FunctionList []*Function
 
-func (d FunctionList) MapByID() map[int64]*Function {
-	res := make(map[int64]*Function, len(d))
-	for i, v := range d {
-		res[v.ID] = d[i]
+func (f FunctionList) MapByID() map[int64]*Function {
+	res := make(map[int64]*Function, len(f))
+	for i, v := range f {
+		res[v.ID] = f[i]
 	}
 	return res
 }
 
-func (d FunctionList) MapBy(key string) map[string]*Function {
-	res := make(map[string]*Function, len(d))
-	for i, v := range d {
-		res[v.Meta[key]] = d[i]
+func (f FunctionList) MapBy(key string) map[string]*Function {
+	res := make(map[string]*Function, len(f))
+	for i, v := range f {
+		res[v.Meta[key]] = f[i]
+	}
+	return res
+}
+
+func (f FunctionList) MapByList(key string) map[string][]*Function {
+	res := make(map[string][]*Function, len(f))
+	for i, v := range f {
+		arr, ok := res[v.Meta[key]]
+		if !ok {
+			arr = make([]*Function, 0, 10)
+		}
+		res[v.Meta[key]] = append(arr, f[i])
 	}
 	return res
 }
