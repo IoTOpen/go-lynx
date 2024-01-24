@@ -34,6 +34,18 @@ func (d DeviceList) MapBy(key string) map[string]*Device {
 	return res
 }
 
+func (d DeviceList) MapByList(key string) map[string][]*Device {
+	res := make(map[string][]*Device, len(d))
+	for i, v := range d {
+		arr, ok := res[v.Meta[key]]
+		if !ok {
+			arr = make([]*Device, 0, 10)
+		}
+		res[v.Meta[key]] = append(arr, d[i])
+	}
+	return res
+}
+
 func (c *Client) GetDevices(installationID int64, filter Filter) (DeviceList, error) {
 	res := make(DeviceList, 0, 20)
 	query := filter.ToURLValues()
