@@ -6,6 +6,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/spf13/viper"
 	"log"
+	"math"
 	"time"
 )
 
@@ -13,6 +14,11 @@ type Message struct {
 	Value     float64 `json:"value"`
 	Timestamp float64 `json:"timestamp,omitempty"`
 	Msg       string  `json:"msg,omitempty"`
+}
+
+func (m *Message) Time() time.Time {
+	whole, fractals := math.Modf(m.Timestamp)
+	return time.Unix(int64(whole), int64(fractals*1000000000))
 }
 
 func (c *Client) MQTTConnect() error {
