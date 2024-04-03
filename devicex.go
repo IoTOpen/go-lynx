@@ -34,8 +34,8 @@ func (d DeviceList) MapBy(key string) map[string]*Device {
 	return res
 }
 
-func (d DeviceList) MapByList(key string) map[string][]*Device {
-	res := make(map[string][]*Device, len(d))
+func (d DeviceList) MapByList(key string) map[string]DeviceList {
+	res := make(map[string]DeviceList, len(d))
 	for i, v := range d {
 		arr, ok := res[v.Meta[key]]
 		if !ok {
