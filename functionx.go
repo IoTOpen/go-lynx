@@ -34,8 +34,8 @@ func (f FunctionList) MapBy(key string) map[string]*Function {
 	return res
 }
 
-func (f FunctionList) MapByList(key string) map[string][]*Function {
-	res := make(map[string][]*Function, len(f))
+func (f FunctionList) MapByList(key string) map[string]FunctionList {
+	res := make(map[string]FunctionList, len(f))
 	for i, v := range f {
 		arr, ok := res[v.Meta[key]]
 		if !ok {
