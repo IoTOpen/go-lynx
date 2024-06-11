@@ -3,6 +3,7 @@ package lynx
 import (
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"time"
@@ -15,6 +16,11 @@ type LogEntry struct {
 	Timestamp      float64 `json:"timestamp"`
 	Topic          string  `json:"topic"`
 	Value          float64 `json:"value"`
+}
+
+func (l *LogEntry) Time() time.Time {
+	whole, fractals := math.Modf(l.Timestamp)
+	return time.Unix(int64(whole), int64(fractals*1000000000))
 }
 
 type Status []*LogEntry
