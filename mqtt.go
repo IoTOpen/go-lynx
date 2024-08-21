@@ -48,14 +48,20 @@ func (c *Client) Publish(topic string, payload interface{}, qos byte) error {
 // broker, the MQTT broker URI
 // client_id, id to be used by the client
 // connection_log, boolean value for enabling/disabling connection logging
+// timeout, the connect-timeout to be used on the client. Defaults to 30s
 func NewMqttOptions(conf *viper.Viper, onConnect mqtt.OnConnectHandler, onLost mqtt.ConnectionLostHandler) *mqtt.ClientOptions {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(conf.GetString("broker"))
 	opts.SetClientID(conf.GetString("client_id"))
 	opts.SetCleanSession(true)
 	opts.SetConnectRetryInterval(time.Second * 5)
-	opts.SetConnectTimeout(time.Second)
 	opts.SetAutoReconnect(true)
+
+	if conf.InConfig("timeout") {
+		opts.SetConnectTimeout(conf.GetDuration("timeout"))
+	} else {
+		opts.SetConnectTimeout(time.Second * 30)
+	}
 
 	opts.SetConnectionLostHandler(func(c mqtt.Client, err error) {
 		if conf.GetBool("connection_log") {
