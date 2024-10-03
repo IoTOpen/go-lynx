@@ -88,7 +88,7 @@ func (c *Client) GetTraces(opts *TraceOptions) (*TracePage, error) {
 
 	if opts.ObjectType != TraceObjectTypeNone {
 		query["object_type"] = []string{string(opts.ObjectType)}
-		query["object_id"] = []string{string(opts.ObjectID)}
+		query["object_id"] = []string{fmt.Sprintf("%d", opts.ObjectID)}
 	} else {
 		query["id"] = []string{opts.ID}
 	}
