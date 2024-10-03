@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 )
 
 type Function struct {
@@ -17,6 +19,83 @@ type Function struct {
 }
 
 type FunctionList []*Function
+
+// FormatValue formats a value according to the function meta-data parameters.
+//
+// Functions are formatted using a set of rules in the order:
+//  1. The format_<topicKey> for the topicKey used
+//  3. The format meta-ket
+//  2. Using value+unit
+//  4. By matching the value to the state_<key> and looking for text_<key> for that value and state
+//  5. Using a normal float format string
+func (f *Function) FormatValue(value float64, topicKey string) string {
+	if topicKey == "" {
+		topicKey = "read"
+	}
+	topicKeys := make(map[string]bool, 2)
+	for k := range f.Meta {
+		if key, found := strings.CutPrefix(k, "topic_"); found {
+			topicKeys[key] = true
+		}
+	}
+	formatStrings := make(map[string]string, 3)
+	for k, v := range f.Meta {
+		if key, found := strings.CutPrefix(k, "format_"); found && topicKeys[key] {
+			formatStrings[key] = v
+		}
+	}
+
+	if format := formatStrings[topicKey]; format != "" {
+		return fmt.Sprintf(format, value)
+	} else if format, ok := f.Meta["format"]; ok {
+		return fmt.Sprintf(format, value)
+	} else if unit, ok := f.Meta["unit"]; ok {
+		return fmt.Sprintf("%f%s", value, unit)
+	}
+
+	texts := f.getTexts()
+	stateMap := f.GetStatesRev()
+	if stateKey, ok := stateMap[value]; ok {
+		if s, ok := texts[stateKey]; ok {
+			return s
+		}
+		return stateKey
+	}
+
+	return fmt.Sprintf("%f", value)
+}
+
+func (f *Function) getTexts() map[string]string {
+	res := make(map[string]string)
+	for k, v := range f.Meta {
+		if newKey, found := strings.CutPrefix(k, "text_"); found {
+			res[newKey] = v
+		}
+	}
+	return res
+}
+
+func (f *Function) GetStates() map[string]float64 {
+	res := make(map[string]float64)
+	for k, v := range f.Meta {
+		if newKey, found := strings.CutPrefix(k, "state_"); found {
+			val, _ := strconv.ParseFloat(v, 64)
+			res[newKey] = val
+		}
+	}
+	return res
+}
+
+func (f *Function) GetStatesRev() map[float64]string {
+	res := make(map[float64]string)
+	for k, v := range f.Meta {
+		if newKey, found := strings.CutPrefix(k, "state_"); found {
+			val, _ := strconv.ParseFloat(v, 64)
+			res[val] = newKey
+		}
+	}
+	return res
+}
 
 func (f FunctionList) MapByID() map[int64]*Function {
 	res := make(map[int64]*Function, len(f))
