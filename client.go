@@ -2,13 +2,19 @@ package lynx
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"golang.org/x/net/context"
+	"golang.org/x/net/http2"
 )
 
 // Options is connection options for the client
@@ -47,6 +53,28 @@ func NewClient(options *Options) *Client {
 	if options.HTTPClient == nil {
 		options.HTTPClient = &http.Client{
 			Timeout: time.Second * 5,
+		}
+		options.HTTPClient.Transport = &http.Transport{
+			TLSHandshakeTimeout: time.Second * 5,
+		}
+		if tmp, err := url.Parse(options.APIBase); err == nil && (tmp.Scheme == "h2c" || tmp.Scheme == "h2") {
+			tr := http2.Transport{}
+			if tmp.Scheme == "h2c" {
+				tmp.Scheme = "http"
+				tr.AllowHTTP = true
+				tr.DialTLS = func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+					var d net.Dialer
+					return d.Dial(network, addr)
+				}
+				tr.DialTLSContext = func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
+					var d net.Dialer
+					return d.DialContext(ctx, network, tmp.Host)
+				}
+			} else {
+				tmp.Scheme = "https"
+			}
+			options.APIBase = tmp.String()
+			options.HTTPClient.Transport = &tr
 		}
 	}
 	return &Client{
