@@ -53,9 +53,9 @@ func NewClient(options *Options) *Client {
 	if options.HTTPClient == nil {
 		options.HTTPClient = &http.Client{
 			Timeout: time.Second * 5,
-		}
-		options.HTTPClient.Transport = &http.Transport{
-			TLSHandshakeTimeout: time.Second * 5,
+			Transport: &http.Transport{
+				TLSHandshakeTimeout: time.Second * 5,
+			},
 		}
 		if tmp, err := url.Parse(options.APIBase); err == nil && (tmp.Scheme == "h2c" || tmp.Scheme == "h2") {
 			tr := http2.Transport{}
