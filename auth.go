@@ -2,8 +2,9 @@ package lynx
 
 import (
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"net/http"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 type Authentication interface {

@@ -45,18 +45,18 @@ func (f *Function) FormatValue(value float64, topicKey string) string {
 		}
 	}
 
-	if format := formatStrings[topicKey]; format != "" {
-		return fmt.Sprintf(format, value)
+	if formatStr := formatStrings[topicKey]; formatStr != "" {
+		return fmt.Sprintf(formatStr, value)
 	} else if format, ok := f.Meta["format"]; ok {
 		return fmt.Sprintf(format, value)
-	} else if unit, ok := f.Meta["unit"]; ok {
+	} else if unit, hasUnit := f.Meta["unit"]; hasUnit {
 		return fmt.Sprintf("%f%s", value, unit)
 	}
 
 	texts := f.getTexts()
 	stateMap := f.GetStatesRev()
 	if stateKey, ok := stateMap[value]; ok {
-		if s, ok := texts[stateKey]; ok {
+		if s, exists := texts[stateKey]; exists {
 			return s
 		}
 		return stateKey
