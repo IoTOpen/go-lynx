@@ -131,14 +131,18 @@ func (c *Client) CreateEdgeAppVersion(appID int64, luaFile, jsonFile io.Reader) 
 		if err != nil {
 			return "", err
 		}
-		io.Copy(fw, luaFile)
+		if _, err := io.Copy(fw, luaFile); err != nil {
+			return "", err
+		}
 	}
 	if jsonFile != nil {
 		fw, err := w.CreateFormFile("app_json", "app.json")
 		if err != nil {
 			return "", err
 		}
-		io.Copy(fw, jsonFile)
+		if _, err := io.Copy(fw, jsonFile); err != nil {
+			return "", err
+		}
 	}
 	w.Close()
 	req := c.newRequest(http.MethodPost, path, body)
@@ -167,6 +171,7 @@ func (c *Client) GetEdgeAppConfigOptions(appID int64, version string) (json.RawM
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	err = requestError(resp)
 	if err != nil {
 		return nil, err

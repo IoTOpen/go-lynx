@@ -33,12 +33,14 @@ type V3Log struct {
 }
 
 type LogOptionsV3 struct {
-	Limit       int64
-	Offset      int64
-	From        time.Time
-	To          time.Time
-	Order       LogOrder
-	TopicFilter []string
+	Limit        int64
+	Offset       int64
+	From         time.Time
+	To           time.Time
+	Order        LogOrder
+	TopicFilter  []string
+	AggrMethod   string
+	AggrInterval time.Duration
 }
 
 type LogOrder string
@@ -70,7 +72,8 @@ func (c *Client) Status(installationID int64, topicFilter []string) (Status, err
 		req = c.newRequest(http.MethodPost, path, body)
 		if postErr := c.do(req, &status); postErr != nil {
 			newErr := Error{}
-			if errors.As(postErr, &newErr); newErr.Code == http.StatusMethodNotAllowed {
+			ok := errors.As(postErr, &newErr)
+			if ok && newErr.Code == http.StatusMethodNotAllowed {
 				return nil, err
 			}
 			return nil, postErr
@@ -96,12 +99,14 @@ func (c *V3Client) Log(installationID int64, opts *LogOptionsV3) (*V3Log, error)
 		}
 	}
 	query := url.Values{
-		"from":   []string{fmt.Sprintf("%d", opts.From.Unix())},
-		"to":     []string{fmt.Sprintf("%d", opts.To.Unix())},
-		"limit":  []string{fmt.Sprintf("%d", opts.Limit)},
-		"offset": []string{fmt.Sprintf("%d", opts.Offset)},
-		"order":  []string{string(opts.Order)},
-		"topics": opts.TopicFilter,
+		"from":          []string{fmt.Sprintf("%d", opts.From.Unix())},
+		"to":            []string{fmt.Sprintf("%d", opts.To.Unix())},
+		"limit":         []string{fmt.Sprintf("%d", opts.Limit)},
+		"offset":        []string{fmt.Sprintf("%d", opts.Offset)},
+		"order":         []string{string(opts.Order)},
+		"topics":        opts.TopicFilter,
+		"aggr_method":   []string{opts.AggrMethod},
+		"aggr_interval": []string{opts.AggrInterval.String()},
 	}
 
 	path := fmt.Sprintf("api/v3beta/log/%d?%s", installationID, query.Encode())
@@ -115,7 +120,8 @@ func (c *V3Client) Log(installationID int64, opts *LogOptionsV3) (*V3Log, error)
 		req = c.c.newRequest(http.MethodPost, path, body)
 		if postErr := c.c.do(req, log); postErr != nil {
 			newErr := Error{}
-			if errors.As(postErr, &newErr); newErr.Code == http.StatusMethodNotAllowed {
+			ok := errors.As(postErr, &newErr)
+			if ok && newErr.Code == http.StatusMethodNotAllowed {
 				return nil, err
 			}
 			return nil, postErr

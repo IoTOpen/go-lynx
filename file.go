@@ -34,7 +34,7 @@ func (c *Client) GetFilesInstallation(installationID int64) ([]*File, error) {
 	return res, nil
 }
 
-func (c *Client) GetFileInstallation(installationID int64, fileID int64) (*File, error) {
+func (c *Client) GetFileInstallation(installationID, fileID int64) (*File, error) {
 	res := &File{}
 	path := fmt.Sprintf("api/v2/file/installation/%d/%d", installationID, fileID)
 	req := c.newRequest(http.MethodGet, path, nil)
@@ -54,7 +54,7 @@ func (c *Client) GetFilesOrganization(organizationID int64) ([]*File, error) {
 	return res, nil
 }
 
-func (c *Client) GetFileOrganization(organizationID int64, fileID int64) (*File, error) {
+func (c *Client) GetFileOrganization(organizationID, fileID int64) (*File, error) {
 	res := &File{}
 	path := fmt.Sprintf("api/v2/file/organization/%d/%d", organizationID, fileID)
 	req := c.newRequest(http.MethodGet, path, nil)
@@ -72,7 +72,7 @@ func (c *Client) CreateFileInstallation(installationID int64, fileName, mime str
 
 	headers := make(textproto.MIMEHeader)
 	headers.Set("Content-Disposition",
-		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+		fmt.Sprintf(`form-data; name="%q"; filename="%q"`,
 			quoteEscaper.Replace(fileName), quoteEscaper.Replace(filepath.Base(fileName))))
 	headers.Set("Content-Type", mime)
 	part, err := w.CreatePart(headers)
@@ -108,7 +108,7 @@ func (c *Client) CreateFileOrganization(organizationID int64, fileName, mime str
 
 	headers := make(textproto.MIMEHeader)
 	headers.Set("Content-Disposition",
-		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+		fmt.Sprintf(`form-data; name="%q"; filename="%q"`,
 			quoteEscaper.Replace(fileName), quoteEscaper.Replace(filepath.Base(fileName))))
 	headers.Set("Content-Type", mime)
 	part, err := w.CreatePart(headers)
@@ -144,7 +144,7 @@ func (c *Client) UpdateFileInstallation(installationID, fileID int64, fileName, 
 
 	headers := make(textproto.MIMEHeader)
 	headers.Set("Content-Disposition",
-		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+		fmt.Sprintf(`form-data; name="%q"; filename="%q"`,
 			quoteEscaper.Replace(fileName), quoteEscaper.Replace(filepath.Base(fileName))))
 	headers.Set("Content-Type", mime)
 	part, err := w.CreatePart(headers)
@@ -177,7 +177,7 @@ func (c *Client) UpdateFileOrganization(organizationID, fileID int64, fileName, 
 
 	headers := make(textproto.MIMEHeader)
 	headers.Set("Content-Disposition",
-		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+		fmt.Sprintf(`form-data; name="%q"; filename="%q"`,
 			quoteEscaper.Replace(fileName), quoteEscaper.Replace(filepath.Base(fileName))))
 	headers.Set("Content-Type", mime)
 	part, err := w.CreatePart(headers)

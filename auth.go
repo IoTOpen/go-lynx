@@ -2,8 +2,9 @@ package lynx
 
 import (
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"net/http"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 type Authentication interface {
@@ -24,15 +25,15 @@ func (b Basic) SetMQTTAuth(o *mqtt.ClientOptions) {
 	o.SetPassword(b.Password)
 }
 
-type AuthApiKey struct {
+type AuthAPIKey struct {
 	Key string
 }
 
-func (a AuthApiKey) SetHTTPAuth(r *http.Request) {
+func (a AuthAPIKey) SetHTTPAuth(r *http.Request) {
 	r.Header.Set("X-API-Key", a.Key)
 }
 
-func (a AuthApiKey) SetMQTTAuth(o *mqtt.ClientOptions) {
+func (a AuthAPIKey) SetMQTTAuth(o *mqtt.ClientOptions) {
 	o.SetUsername("apikey")
 	o.SetPassword(a.Key)
 }
