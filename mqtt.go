@@ -3,17 +3,24 @@ package lynx
 import (
 	"encoding/json"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/spf13/viper"
 	"log"
 	"math"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/spf13/viper"
 )
 
 type Message struct {
 	Value     float64 `json:"value"`
 	Timestamp float64 `json:"timestamp,omitempty"`
 	Msg       string  `json:"msg,omitempty"`
+}
+
+type MQTTMessage struct {
+	Topic string
+	QoS   byte
+	Msg   Message
 }
 
 func (m *Message) Time() time.Time {
@@ -36,6 +43,54 @@ func (c *Client) MQTTDisconnect() {
 	c.Mqtt.Disconnect(1000)
 }
 
+// PublishAllTimeout publishes all messages in the provided slice to their respective topics with a specified timeout.
+// It returns a slice of errors for any messages that failed to publish within the timeout.
+func (c *Client) PublishAllTimeout(messages []MQTTMessage, timeout time.Duration) []error {
+	var queue []mqtt.Token
+	var topic []string
+	var errors []error
+	for _, msg := range messages {
+		data, _ := json.Marshal(msg.Msg)
+		token := c.Mqtt.Publish(msg.Topic, msg.QoS, false, data)
+		queue = append(queue, token)
+		topic = append(topic, msg.Topic)
+	}
+	for i, token := range queue {
+		ok := token.WaitTimeout(timeout)
+		if !ok {
+			errors = append(errors, fmt.Errorf("timeout publishing to topic %s", topic[i]))
+		} else if err := token.Error(); err != nil {
+			errors = append(errors, fmt.Errorf("error publishing to topic %s: %w", topic[i], err))
+		}
+	}
+	return errors
+}
+
+// PublishAll publishes all messages in the provided slice to their respective topics.
+// It returns a slice of errors for any messages that failed to publish.
+func (c *Client) PublishAll(messages []MQTTMessage) []error {
+	var queue []mqtt.Token
+	var topic []string
+	var errors []error
+	for _, msg := range messages {
+		data, _ := json.Marshal(msg.Msg)
+		token := c.Mqtt.Publish(msg.Topic, msg.QoS, false, data)
+		queue = append(queue, token)
+		topic = append(topic, msg.Topic)
+	}
+	for i, token := range queue {
+		ok := token.Wait()
+		if !ok {
+			errors = append(errors, fmt.Errorf("timeout publishing to topic %s", topic[i]))
+		} else if err := token.Error(); err != nil {
+			errors = append(errors, fmt.Errorf("error publishing to topic %s: %w", topic[i], err))
+		}
+	}
+	return errors
+}
+
+// Publish publishes a message to the specified topic with the given QoS level.
+// It marshals the payload into JSON format before sending.
 func (c *Client) Publish(topic string, payload interface{}, qos byte) error {
 	data, _ := json.Marshal(payload)
 	token := c.Mqtt.Publish(topic, qos, false, data)
