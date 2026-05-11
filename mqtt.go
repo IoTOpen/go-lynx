@@ -91,7 +91,7 @@ func (c *Client) PublishAll(messages []MQTTMessage) []error {
 
 // Publish publishes a message to the specified topic with the given QoS level.
 // It marshals the payload into JSON format before sending.
-func (c *Client) Publish(topic string, payload interface{}, qos byte) error {
+func (c *Client) Publish(topic string, payload any, qos byte) error {
 	data, _ := json.Marshal(payload)
 	token := c.Mqtt.Publish(topic, qos, false, data)
 	token.WaitTimeout(time.Second)
