@@ -36,14 +36,14 @@ type EdgeAppVersion struct {
 }
 
 type EdgeAppConfig struct {
-	ID             int64                  `json:"id"`
-	AppID          int64                  `json:"app_id"`
-	InstallationID int64                  `json:"installation_id"`
-	Version        string                 `json:"version"`
-	Config         map[string]interface{} `json:"config"`
-	Name           string                 `json:"name"`
-	Created        int64                  `json:"created"`
-	Updated        int64                  `json:"updated"`
+	ID             int64          `json:"id"`
+	AppID          int64          `json:"app_id"`
+	InstallationID int64          `json:"installation_id"`
+	Version        string         `json:"version"`
+	Config         map[string]any `json:"config"`
+	Name           string         `json:"name"`
+	Created        int64          `json:"created"`
+	Updated        int64          `json:"updated"`
 }
 
 func (c *Client) GetEdgeApps() ([]*EdgeApp, error) {
@@ -98,7 +98,7 @@ func (c *Client) DownloadEdgeApp(id int64, version string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if err := requestError(resp); err != nil {
 		return nil, err
 	}
@@ -144,7 +144,9 @@ func (c *Client) CreateEdgeAppVersion(appID int64, luaFile, jsonFile io.Reader) 
 			return "", err
 		}
 	}
-	w.Close()
+	if err := w.Close(); err != nil {
+		return "", err
+	}
 	req := c.newRequest(http.MethodPost, path, body)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	if err := c.do(req, res); err != nil {
@@ -171,7 +173,7 @@ func (c *Client) GetEdgeAppConfigOptions(appID int64, version string) (json.RawM
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	err = requestError(resp)
 	if err != nil {
 		return nil, err

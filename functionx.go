@@ -187,7 +187,7 @@ func (c *Client) GetFunctionMeta(installationID, functionID int64, key string) (
 
 func (c *Client) CreateFunctionMeta(installationID, functionID int64, key string, meta MetaObject, silent bool) (*MetaObject, error) {
 	query := url.Values{
-		"silent": []string{fmt.Sprintf("%t", silent)},
+		queryParamSilent: []string{fmt.Sprintf("%t", silent)},
 	}
 	mo := &MetaObject{}
 	path := fmt.Sprintf("api/v2/functionx/%d/%d/meta/%s?%s", installationID, functionID, key, query.Encode())
@@ -201,8 +201,8 @@ func (c *Client) CreateFunctionMeta(installationID, functionID int64, key string
 
 func (c *Client) UpdateFunctionMeta(installationID, functionID int64, key string, meta MetaObject, silent, createMissing bool) (*MetaObject, error) {
 	query := url.Values{
-		"silent":         []string{fmt.Sprintf("%t", silent)},
-		"create_missing": []string{fmt.Sprintf("%t", createMissing)},
+		queryParamSilent:        []string{fmt.Sprintf("%t", silent)},
+		queryParamCreateMissing: []string{fmt.Sprintf("%t", createMissing)},
 	}
 	mo := &MetaObject{}
 	path := fmt.Sprintf("api/v2/functionx/%d/%d/meta/%s?%s", installationID, functionID, key, query.Encode())
@@ -216,7 +216,7 @@ func (c *Client) UpdateFunctionMeta(installationID, functionID int64, key string
 
 func (c *Client) DeleteFunctionMeta(installationID, functionID int64, key string, silent bool) error {
 	query := url.Values{
-		"silent": []string{fmt.Sprintf("%t", silent)},
+		queryParamSilent: []string{fmt.Sprintf("%t", silent)},
 	}
 	path := fmt.Sprintf("api/v2/functionx/%d/%d/meta/%s?%s", installationID, functionID, key, query.Encode())
 	request := c.newRequest(http.MethodDelete, path, nil)

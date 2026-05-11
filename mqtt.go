@@ -36,7 +36,7 @@ func (c *Client) MQTTDisconnect() {
 	c.Mqtt.Disconnect(1000)
 }
 
-func (c *Client) Publish(topic string, payload interface{}, qos byte) error {
+func (c *Client) Publish(topic string, payload any, qos byte) error {
 	data, _ := json.Marshal(payload)
 	token := c.Mqtt.Publish(topic, qos, false, data)
 	token.WaitTimeout(time.Second)

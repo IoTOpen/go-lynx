@@ -154,7 +154,7 @@ func (c *Client) GetNotificationOutputExecutor(installationID, executorID int64)
 	return ex, nil
 }
 
-func (c *Client) SendNotification(installationID, outputID int64, data interface{}) error {
+func (c *Client) SendNotification(installationID, outputID int64, data any) error {
 	path := fmt.Sprintf("api/v2/notification/%d/output/%d/send", installationID, outputID)
 	req := c.newRequest(http.MethodPost, path, requestBody(data))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")

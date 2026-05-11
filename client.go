@@ -2,6 +2,7 @@ package lynx
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"golang.org/x/net/context"
 	"golang.org/x/net/http2"
 )
 
@@ -62,11 +62,7 @@ func NewClient(options *Options) *Client {
 			if tmp.Scheme == "h2c" {
 				tmp.Scheme = "http"
 				tr.AllowHTTP = true
-				tr.DialTLS = func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-					var d net.Dialer
-					return d.Dial(network, addr)
-				}
-				tr.DialTLSContext = func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
+				tr.DialTLSContext = func(ctx context.Context, network, _ string, _ *tls.Config) (net.Conn, error) {
 					var d net.Dialer
 					return d.DialContext(ctx, network, tmp.Host)
 				}
@@ -103,18 +99,18 @@ func requestError(response *http.Response) error {
 	return nil
 }
 
-func requestBody(data interface{}) io.Reader {
+func requestBody(data any) io.Reader {
 	bin, _ := json.Marshal(data)
 	body := bytes.NewReader(bin)
 	return body
 }
 
-func (c *Client) do(r *http.Request, out interface{}) error {
+func (c *Client) do(r *http.Request, out any) error {
 	response, err := c.c.Do(r)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if err := requestError(response); err != nil {
 		return err
 	}
@@ -128,7 +124,7 @@ func (c *Client) do(r *http.Request, out interface{}) error {
 
 func (c *Client) newRequest(method, path string, body io.Reader) *http.Request {
 	uri := fmt.Sprintf("%s/%s", c.opt.APIBase, path)
-	r, _ := http.NewRequest(method, uri, body)
+	r, _ := http.NewRequestWithContext(context.Background(), method, uri, body)
 	c.opt.Authenticator.SetHTTPAuth(r)
 	return r
 }

@@ -29,6 +29,9 @@ type AuthApiKey struct {
 	Key string
 }
 
+// AuthAPIKey is an alias for AuthApiKey to avoid confusion with the struct name
+type AuthAPIKey = AuthApiKey
+
 func (a AuthApiKey) SetHTTPAuth(r *http.Request) {
 	r.Header.Set("X-API-Key", a.Key)
 }
@@ -53,8 +56,8 @@ func (a AuthBearer) SetMQTTAuth(o *mqtt.ClientOptions) {
 
 type AuthNone struct{}
 
-func (a AuthNone) SetHTTPAuth(r *http.Request) {
+func (a AuthNone) SetHTTPAuth(_ *http.Request) {
 }
 
-func (a AuthNone) SetMQTTAuth(o *mqtt.ClientOptions) {
+func (a AuthNone) SetMQTTAuth(_ *mqtt.ClientOptions) {
 }
