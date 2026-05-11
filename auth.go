@@ -25,18 +25,18 @@ func (b Basic) SetMQTTAuth(o *mqtt.ClientOptions) {
 	o.SetPassword(b.Password)
 }
 
-type AuthApiKey struct {
+// Deprecated: use AuthAPIKey.
+type AuthApiKey = AuthAPIKey
+
+type AuthAPIKey struct {
 	Key string
 }
 
-// AuthAPIKey is an alias for AuthApiKey to avoid confusion with the struct name
-type AuthAPIKey = AuthApiKey
-
-func (a AuthApiKey) SetHTTPAuth(r *http.Request) {
+func (a AuthAPIKey) SetHTTPAuth(r *http.Request) {
 	r.Header.Set("X-API-Key", a.Key)
 }
 
-func (a AuthApiKey) SetMQTTAuth(o *mqtt.ClientOptions) {
+func (a AuthAPIKey) SetMQTTAuth(o *mqtt.ClientOptions) {
 	o.SetUsername("apikey")
 	o.SetPassword(a.Key)
 }
