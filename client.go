@@ -124,7 +124,7 @@ func (c *Client) do(r *http.Request, out any) error {
 
 func (c *Client) newRequest(method, path string, body io.Reader) *http.Request {
 	uri := fmt.Sprintf("%s/%s", c.opt.APIBase, path)
-	r, _ := http.NewRequestWithContext(context.Background(), method, uri, body)
+	r, _ := http.NewRequest(method, uri, body)
 	c.opt.Authenticator.SetHTTPAuth(r)
 	return r
 }
