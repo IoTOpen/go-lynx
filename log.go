@@ -84,39 +84,91 @@ func (c *Client) Status(installationID int64, topicFilter []string) (Status, err
 	return status, err
 }
 
+const (
+	defaultV3LogLimit = int64(500)
+	defaultV3LogRange = 24 * time.Hour
+)
+
+func normalizeLogOptionsV3(opts *LogOptionsV3) (*LogOptionsV3, error) {
+	now := time.Now()
+
+	if opts == nil {
+		opts = &LogOptionsV3{}
+	}
+
+	normalized := *opts
+
+	if normalized.To.IsZero() {
+		normalized.To = now
+	}
+	if normalized.From.IsZero() {
+		normalized.From = normalized.To.Add(-defaultV3LogRange)
+	}
+	if normalized.To.Before(normalized.From) {
+		return nil, fmt.Errorf("invalid log time range: from %s is after to %s",
+			normalized.From.Format(time.RFC3339),
+			normalized.To.Format(time.RFC3339))
+	}
+
+	if normalized.Limit <= 0 {
+		normalized.Limit = defaultV3LogLimit
+	}
+	if normalized.Offset < 0 {
+		normalized.Offset = 0
+	}
+
+	switch normalized.Order {
+	case "":
+		normalized.Order = LogOrderDesc
+	case LogOrderAsc, LogOrderDesc:
+	default:
+		return nil, fmt.Errorf("invalid log order: %q", normalized.Order)
+	}
+
+	if normalized.TopicFilter == nil {
+		normalized.TopicFilter = []string{}
+	}
+	if normalized.AggrInterval < 0 {
+		return nil, fmt.Errorf("invalid negative aggregation interval: %s", normalized.AggrInterval)
+	}
+
+	return &normalized, nil
+}
+
 // Log returns log entries in the V3 format. If opts is nil some default values will be used.
 func (c *V3Client) Log(installationID int64, opts *LogOptionsV3) (*V3Log, error) {
 	log := &V3Log{}
-	if opts == nil {
-		t := time.Now()
-		opts = &LogOptionsV3{
-			From:        t.Add(-time.Hour * 24),
-			To:          t,
-			Limit:       500,
-			Offset:      0,
-			Order:       LogOrderDesc,
-			TopicFilter: []string{},
-		}
+
+	normalized, err := normalizeLogOptionsV3(opts)
+	if err != nil {
+		return nil, err
 	}
+
 	query := url.Values{
-		"from":          []string{fmt.Sprintf("%d", opts.From.Unix())},
-		"to":            []string{fmt.Sprintf("%d", opts.To.Unix())},
-		"limit":         []string{fmt.Sprintf("%d", opts.Limit)},
-		"offset":        []string{fmt.Sprintf("%d", opts.Offset)},
-		"order":         []string{string(opts.Order)},
-		"topics":        opts.TopicFilter,
-		"aggr_method":   []string{opts.AggrMethod},
-		"aggr_interval": []string{opts.AggrInterval.String()},
+		"from":   []string{fmt.Sprintf("%d", normalized.From.Unix())},
+		"to":     []string{fmt.Sprintf("%d", normalized.To.Unix())},
+		"limit":  []string{fmt.Sprintf("%d", normalized.Limit)},
+		"offset": []string{fmt.Sprintf("%d", normalized.Offset)},
+		"order":  []string{string(normalized.Order)},
+		"topics": normalized.TopicFilter,
+	}
+
+	if normalized.AggrMethod != "" {
+		query["aggr_method"] = []string{normalized.AggrMethod}
+		if normalized.AggrInterval > 0 {
+			query["aggr_interval"] = []string{normalized.AggrInterval.String()}
+		}
 	}
 
 	path := fmt.Sprintf("api/v3beta/log/%d?%s", installationID, query.Encode())
 	req := c.c.newRequest(http.MethodGet, path, nil)
-	err := c.c.do(req, log)
+	err = c.c.do(req, log)
+
 	getErr := Error{}
 	if errors.As(err, &getErr) && getErr.Code == http.StatusRequestURITooLong {
 		delete(query, "topics")
 		path = fmt.Sprintf("api/v3beta/log/%d?%s", installationID, query.Encode())
-		body := requestBody(opts.TopicFilter)
+		body := requestBody(normalized.TopicFilter)
 		req = c.c.newRequest(http.MethodPost, path, body)
 		if postErr := c.c.do(req, log); postErr != nil {
 			newErr := Error{}

@@ -109,7 +109,7 @@ func (c *Client) GetDeviceMeta(installationID, deviceID int64, key string) (*Met
 
 func (c *Client) CreateDeviceMeta(installationID, deviceID int64, key string, meta MetaObject, silent bool) (*MetaObject, error) {
 	query := url.Values{
-		"silent": []string{fmt.Sprintf("%t", silent)},
+		queryParamSilent: []string{fmt.Sprintf("%t", silent)},
 	}
 	mo := &MetaObject{}
 	path := fmt.Sprintf("api/v2/devicex/%d/%d/meta/%s?%s", installationID, deviceID, key, query.Encode())
@@ -123,8 +123,8 @@ func (c *Client) CreateDeviceMeta(installationID, deviceID int64, key string, me
 
 func (c *Client) UpdateDeviceMeta(installationID, deviceID int64, key string, meta MetaObject, silent, createMissing bool) (*MetaObject, error) {
 	query := url.Values{
-		"silent":         []string{fmt.Sprintf("%t", silent)},
-		"create_missing": []string{fmt.Sprintf("%t", createMissing)},
+		queryParamSilent:        []string{fmt.Sprintf("%t", silent)},
+		queryParamCreateMissing: []string{fmt.Sprintf("%t", createMissing)},
 	}
 	mo := &MetaObject{}
 	path := fmt.Sprintf("api/v2/devicex/%d/%d/meta/%s?%s", installationID, deviceID, key, query.Encode())
@@ -138,7 +138,7 @@ func (c *Client) UpdateDeviceMeta(installationID, deviceID int64, key string, me
 
 func (c *Client) DeleteDeviceMeta(installationID, deviceID int64, key string, silent bool) error {
 	query := url.Values{
-		"silent": []string{fmt.Sprintf("%t", silent)},
+		queryParamSilent: []string{fmt.Sprintf("%t", silent)},
 	}
 	path := fmt.Sprintf("api/v2/devicex/%d/%d/meta/%s?%s", installationID, deviceID, key, query.Encode())
 	request := c.newRequest(http.MethodDelete, path, nil)
